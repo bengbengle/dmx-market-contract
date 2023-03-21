@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 /**
  * @dev 该合约实现了一个可升级的代理。
  * 它是可升级的，因为调用被委托给一个可以更改的实现地址。
- * 此地址存储在 `EIP1967` 指定的存储位置中，因此它不会与代理后面的实现的存储布局冲突。
+ * 此地址存储在 `EIP1967` 指定的存储位置中, 因此它不会与代理后面的实现的存储布局冲突。
  */
 contract ERC1967Proxy is Proxy, ERC1967Upgrade {
     /**
-     * @dev Initializes the upgradeable proxy with an initial implementation specified by `_logic`.
+     * @dev 使用 `_logic` 指定的初始实现 来 初始化 可升级代理
      *
      * If `_data` is nonempty, it's used as data in a delegate call to `_logic`. 
      * This will typically be an encoded
@@ -26,7 +26,7 @@ contract ERC1967Proxy is Proxy, ERC1967Upgrade {
     }
 
     /**
-     * @dev Returns the current implementation address.
+     * @dev 返回当前的实现地址
      */
     function _implementation() internal view virtual override returns (address impl) {
         return ERC1967Upgrade._getImplementation();

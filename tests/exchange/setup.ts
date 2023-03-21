@@ -45,12 +45,16 @@ interface SetupTestResult {
   alice: any;
   bob: any;
   thirdParty: any;
+
   exchange: Contract;
   executionDelegate: Contract;
   matchingPolicies: Record<string, Contract>;
+  
   mockERC721: Contract;
-  tokenId: number;
   weth: any;
+
+  tokenId: number;
+
   checkBalances: CheckBalances;
   generateOrder: GenerateOrder;
 }
@@ -100,6 +104,7 @@ async function setupMocks(alice: any, bob: any) {
   await weth.mint(alice.address, eth('1000'));
 
   return { weth, mockERC721, tokenId };
+
 }
 
 export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts): Promise<SetupTestResult> {
@@ -122,8 +127,6 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
     feeRecipientEth: any,
     feeRecipientWeth: any,
   ) => {
-
-    console.log('aliceEth, aliceWeth:', aliceEth.toString(), aliceWeth.toString());
 
     expect(await alice.getBalance()).to.be.equal(aliceEth);
     expect(await bob.getBalance()).to.be.equal(bobEth);

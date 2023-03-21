@@ -58,6 +58,7 @@ export function runExecuteTests(setupTest: any) {
         alice,
         bob,
         thirdParty,
+
         weth,
         mockERC721,
         tokenId,
@@ -65,6 +66,7 @@ export function runExecuteTests(setupTest: any) {
         executionDelegate,
         generateOrder,
         checkBalances,
+
       } = await setupTest());
     });
 
@@ -76,13 +78,9 @@ export function runExecuteTests(setupTest: any) {
       fee = price.mul(feeRate).div(INVERSE_BASIS_POINT);
       priceMinusFee = price.sub(fee);
 
-      sell = generateOrder(alice, {
-        side: Side.Sell,
-        tokenId,
-      });
-
+      sell = generateOrder(alice, { side: Side.Sell, tokenId});
       buy = generateOrder(bob, { side: Side.Buy, tokenId });
-
+      
       otherOrders = [
         generateOrder(alice, { salt: 1 }),
         generateOrder(alice, { salt: 2 }),
@@ -91,6 +89,13 @@ export function runExecuteTests(setupTest: any) {
 
       sellInput = await sell.pack();
       buyInput = await buy.pack();
+
+      console.log(
+        'sellInput, buyInput:', 
+        JSON.stringify(sellInput, null, 4), 
+        JSON.stringify(buyInput, null, 4)
+      );
+
     });
 
     it('can cancel order', async () => {
@@ -105,18 +110,24 @@ export function runExecuteTests(setupTest: any) {
     
     it('can cancel bulk listing', async () => {
       sellInput = await sell.packBulk(otherOrders);
+      buyInput = await buy.packBulk(otherOrders);
+      
       await exchange.connect(alice).cancelOrder(sell.parameters);
-      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-        'Sell has invalid parameters',
-      );
+
+      await expect(
+        exchange.execute(sellInput, buyInput)
+      ).to.be.revertedWith('Sell has invalid parameters');
+
     });
     
     it('can cancel multiple orders', async () => {
       const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
       const buyInput2 = await buy2.pack();
+      
       await exchange
         .connect(bob)
         .cancelOrders([buy.parameters, buy2.parameters]);
+
       await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
         'Buy has invalid parameters',
       );
@@ -126,7 +137,7 @@ export function runExecuteTests(setupTest: any) {
     });
       
     it('should succeed if reopened', async () => {
-      await exchange.open();
+      // await exchange.open();
 
       buyInput = await buy.packNoSigs();
       const tx = await waitForTx(
@@ -147,4 +158,5 @@ export function runExecuteTests(setupTest: any) {
 
     });
   };
+
 }

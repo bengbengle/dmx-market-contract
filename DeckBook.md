@@ -108,8 +108,16 @@ todo:
     委托代理 合约测试
     转移 NFT， weth 设置测试
 
-3. 签名 验证 测试
-4. order 参数结构 
+4. Order 参数结构 
+    * 怎么构建 NFT 卖单 订单
+    * 卖家怎么签名
+    * 后端 / 合约 验证签名是否有效
+    * 买家 构建 erc20 买单
+    * 买单 是否需要签名呢 ? 验证？
+    * 调用合约 执行 
+    * 验证买卖 订单的策略 是否匹配
+
+
 5. 策略 匹配的 验证测试 
 
 6. 订单执行 测试
@@ -135,8 +143,8 @@ Input {
 
 ```rust
 Order {
-    address trader;
     Side side;
+    address trader;
     address matchingPolicy;
     address collection;
     uint256 tokenId;
@@ -145,9 +153,9 @@ Order {
     uint256 price;
     uint256 listingTime; // 挂单时间
     uint256 expirationTime; // 过期时间
-    Fee[] fees;
     uint256 salt;
     bytes extraParams;
+    Fee[] fees;
 }
 ```
 
@@ -161,7 +169,7 @@ Fee {
 ```
 
 ### INPUT DEMO
-``` json
+``` json 
 {
     "trader": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
     "side": 0,
@@ -187,3 +195,37 @@ Fee {
 }
 
 ```
+
+
+### 数据结构
+
+<!-- mapping(bytes32 => bool) public cancelledOrFilled; -->
+mapping(address => uint256) public nonces; // user address --> 0,1,2,3,4 ....
+
+
+
+### 转移合约到多签账户
+
+nft 合约
+nft 供奉合约
+
+交易所 合约
+交易所 管理合约
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -33,13 +33,13 @@ const eip712Order = {
   ],
 };
 
-const eip712OracleOrder = {
-  name: 'OracleOrder',
-  fields: [
-    { name: 'order', type: 'Order' },
-    { name: 'blockNumber', type: 'uint256' },
-  ],
-};
+// const eip712OracleOrder = {
+//   name: 'OracleOrder',
+//   fields: [
+//     { name: 'order', type: 'Order' },
+//     { name: 'blockNumber', type: 'uint256' },
+//   ],
+// };
 
 function structToSign(order: OrderWithNonce, exchange: string): TypedData {
 
@@ -56,25 +56,25 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
   };
 }
 
-export async function oracleSign(order: OrderParameters, account: Wallet, exchange: Contract, blockNumber: number): Promise<Signature> {
+// export async function oracleSign(order: OrderParameters, account: Wallet, exchange: Contract, blockNumber: number): Promise<Signature> {
   
-  const nonce = await exchange.nonces(order.trader);
-  const str = structToSign({ ...order, nonce }, exchange.address);
-  return account
-    ._signTypedData(
-      str.domain,
-      {
-        [eip712Fee.name]: eip712Fee.fields,
-        [eip712Order.name]: eip712Order.fields,
-        [eip712OracleOrder.name]: eip712OracleOrder.fields,
-      },
-      { order: str.data, blockNumber },
-    )
-    .then((sigBytes) => {
-      const sig = ethers.utils.splitSignature(sigBytes);
-      return sig;
-    });
-}
+//   const nonce = await exchange.nonces(order.trader);
+//   const str = structToSign({ ...order, nonce }, exchange.address);
+//   return account
+//     ._signTypedData(
+//       str.domain,
+//       {
+//         [eip712Fee.name]: eip712Fee.fields,
+//         [eip712Order.name]: eip712Order.fields,
+//         [eip712OracleOrder.name]: eip712OracleOrder.fields,
+//       },
+//       { order: str.data, blockNumber },
+//     )
+//     .then((sigBytes) => {
+//       const sig = ethers.utils.splitSignature(sigBytes);
+//       return sig;
+//     });
+// }
 
 export async function sign(order: OrderParameters, account: Wallet, exchange: Contract): Promise<Signature> {
 
@@ -99,17 +99,18 @@ export async function sign(order: OrderParameters, account: Wallet, exchange: Co
 export function packSignature(signature: Signature): string {
   return ethers.utils.defaultAbiCoder.encode(
     ['uint8', 'bytes32', 'bytes32'],
-    [signature.v, signature.r, signature.s],
+    [signature.v, signature.r, signature.s]
   );
 }
 
-export function packSignatures(signatures: Signature[]): string {
-  return ethers.utils.defaultAbiCoder.encode(
-    signatures.map(() => 'bytes'),
-    signatures.map(packSignature),
-  );
-}
+// export function packSignatures(signatures: Signature[]): string {
+//   return ethers.utils.defaultAbiCoder.encode(
+//     signatures.map(() => 'bytes'),
+//     signatures.map(packSignature),
+//   );
+// }
 
+// 构建 MerkleTree, 然后返回 root 
 export function getMerkleProof(leaves: string[]) {
   const tree = new MerkleTree(leaves, ethers.utils.keccak256, { sort: true });
   const root = tree.getHexRoot();
@@ -117,6 +118,7 @@ export function getMerkleProof(leaves: string[]) {
 }
 
 export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract) {
+
   const { tree, root } = await getOrderTreeRoot(orders, exchange);
 
   const nonce = await exchange.nonces(orders[0].trader);
@@ -138,31 +140,32 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       const sig = ethers.utils.splitSignature(sigBytes);
       return sig;
     });
+
   return {
-    path: ethers.utils.defaultAbiCoder.encode(
-      ['bytes32[]'],
-      [tree.getHexProof(_order)],
-    ),
+    path: ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]),
     r: signature.r,
     v: signature.v,
     s: signature.s,
   };
+
 }
 
+// 获取 订单列表的 MerkleProof
 async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
   const leaves = await Promise.all(
     orders.map(async (order) => {
       const nonce = await exchange.nonces(order.trader);
       return hashWithoutDomain({ ...order, nonce });
-    }),
-  );
+    })
+  )
   return getMerkleProof(leaves);
 }
 
 export function hash(parameters: any, exchange: Contract): string {
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
-  return `0x${eip712Hash(
+
+  const _hash = eip712Hash(
     {
       types: {
         EIP712Domain: [
@@ -184,13 +187,17 @@ export function hash(parameters: any, exchange: Contract): string {
       message: parameters,
     },
     SignTypedDataVersion.V4,
-  ).toString('hex')}`;
+  );
+
+  return `0x${_hash.toString('hex')}`;
+
 }
 
 export function hashWithoutDomain(parameters: any): string {
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
-  return `0x${hashStruct(
+
+  const _hash = hashStruct(
     'Order',
     parameters,
     {
@@ -198,5 +205,7 @@ export function hashWithoutDomain(parameters: any): string {
       [eip712Order.name]: eip712Order.fields,
     },
     SignTypedDataVersion.V4,
-  ).toString('hex')}`;
+  );
+
+  return `0x${_hash.toString('hex')}`;
 }

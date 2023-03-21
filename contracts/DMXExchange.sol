@@ -97,7 +97,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         IExecutionDelegate _executionDelegate,
         IPolicyManager _policyManager
     ) public initializer {
-        
+
         __Ownable_init();
 
 
@@ -111,8 +111,9 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         executionDelegate = _executionDelegate;
         policyManager = _policyManager;
         
-        blockRange = 5;
+        blockRange = 20;
         isOpen = 1;
+
         oracle = msg.sender;
     }
 
@@ -486,6 +487,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         address from,
         uint256 price
     ) internal returns (uint256) {
+        
         uint256 totalFee = 0;
         for (uint8 i = 0; i < fees.length; i++) {
             uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT;
@@ -497,6 +499,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         /* Amount that will be received by seller. */
         uint256 receiveAmount = price - totalFee;
+
         return (receiveAmount);
     }
 
@@ -520,9 +523,12 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         if (paymentToken == address(0)) {
             /* Transfer funds in ETH. */
             payable(to).transfer(amount);
+        
         } else if (paymentToken == weth) {
+
             /* Transfer funds in WETH. */
             executionDelegate.transferERC20(weth, from, to, amount);
+
         } else {
             revert("Invalid payment token");
         }

@@ -4,7 +4,8 @@ import { parseEther } from 'ethers/lib/utils';
 import { ethers } from 'hardhat';
 import { hashWithoutDomain, hash } from './signatures';
 
-import { oracleSign, packSignature, sign, signBulk } from './signatures';
+// import { oracleSign, packSignature, sign, signBulk } from './signatures';
+import { packSignature, sign, signBulk } from './signatures';
 
 export enum Side {
   Buy = 0,
@@ -87,17 +88,18 @@ export class Order {
       v: signature.v,
       r: signature.r,
       s: signature.s,
-      extraSignature: packSignature(
-        await oracleSign(
-          this.parameters,
-          options.oracle || this.admin,
-          this.exchange,
-          options.blockNumber ||
-            (
-              await ethers.provider.getBlock('latest')
-            ).number,
-        ),
-      ),
+      extraSignature: '0x',
+      // extraSignature: packSignature(
+      //   await oracleSign(
+      //     this.parameters,
+      //     options.oracle || this.admin,
+      //     this.exchange,
+      //     options.blockNumber ||
+      //       (
+      //         await ethers.provider.getBlock('latest')
+      //       ).number,
+      //   ),
+      // ),
       signatureVersion: SignatureVersion.Single,
       blockNumber: (await ethers.provider.getBlock('latest')).number,
     };
@@ -111,7 +113,7 @@ export class Order {
       s: ZERO_BYTES32,
       extraSignature: '0x',
       signatureVersion: SignatureVersion.Single,
-      blockNumber: (await ethers.provider.getBlock('latest')).number,
+      blockNumber: (await ethers.provider.getBlock('latest')).number
     };
   }
 
@@ -124,7 +126,7 @@ export class Order {
       s: signature.s,
       extraSignature: '0x',
       signatureVersion: SignatureVersion.Single,
-      blockNumber: (await ethers.provider.getBlock('latest')).number,
+      blockNumber: (await ethers.provider.getBlock('latest')).number
     };
   }
 
@@ -152,33 +154,33 @@ export class Order {
       this.exchange,
     );
 
-    const oracleSig = await oracleSign(
-      this.parameters,
-      this.admin,
-      this.exchange,
-      (
-        await ethers.provider.getBlock('latest')
-      ).number,
-    );
+  //   const oracleSig = await oracleSign(
+  //     this.parameters,
+  //     this.admin,
+  //     this.exchange,
+  //     (
+  //       await ethers.provider.getBlock('latest')
+  //     ).number,
+  //   );
 
-    return {
-      order: this.parameters,
-      r,
-      v,
-      s,
-      extraSignature: ethers.utils.defaultAbiCoder.encode(
-        ['bytes32[]', 'uint8', 'bytes32', 'bytes32'],
-        [
-          ethers.utils.defaultAbiCoder.decode(['bytes32[]'], path)[0],
-          oracleSig.v,
-          oracleSig.r,
-          oracleSig.s,
-        ],
-      ),
-      signatureVersion: SignatureVersion.Bulk,
-      blockNumber: (await ethers.provider.getBlock('latest')).number,
-    };
-  }
+  //   return {
+  //     order: this.parameters,
+  //     r,
+  //     v,
+  //     s,
+  //     extraSignature: ethers.utils.defaultAbiCoder.encode(
+  //       ['bytes32[]', 'uint8', 'bytes32', 'bytes32'],
+  //       [
+  //         ethers.utils.defaultAbiCoder.decode(['bytes32[]'], path)[0],
+  //         oracleSig.v,
+  //         oracleSig.r,
+  //         oracleSig.s,
+  //       ],
+  //     ),
+  //     signatureVersion: SignatureVersion.Bulk,
+  //     blockNumber: (await ethers.provider.getBlock('latest')).number,
+  //   };
+  // }
 }
 
 export interface Field {

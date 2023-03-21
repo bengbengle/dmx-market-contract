@@ -43,7 +43,6 @@ export function runExchangeTests(
       });
     });
 
-
     describe('execute', runExecuteTests(async () => {
         return setupTest({price, feeRate, setupExchange});
       }),
