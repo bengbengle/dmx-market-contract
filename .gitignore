@@ -117,3 +117,5 @@ yarn-error.log
 slither.db.json
 coverage
 coverage.json
+
+typechain-types/

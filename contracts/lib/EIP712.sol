@@ -23,9 +23,11 @@ contract EIP712 {
     bytes32 constant public ORDER_TYPEHASH = keccak256(
         "Order(address trader,uint8 side,address matchingPolicy,address collection,uint256 tokenId,uint256 amount,address paymentToken,uint256 price,uint256 listingTime,uint256 expirationTime,Fee[] fees,uint256 salt,bytes extraParams,uint256 nonce)Fee(uint16 rate,address recipient)"
     );
-    bytes32 constant public ORACLE_ORDER_TYPEHASH = keccak256(
-        "OracleOrder(Order order,uint256 blockNumber)Fee(uint16 rate,address recipient)Order(address trader,uint8 side,address matchingPolicy,address collection,uint256 tokenId,uint256 amount,address paymentToken,uint256 price,uint256 listingTime,uint256 expirationTime,Fee[] fees,uint256 salt,bytes extraParams,uint256 nonce)"
-    );
+
+    // bytes32 constant public ORACLE_ORDER_TYPEHASH = keccak256(
+    //     "OracleOrder(Order order,uint256 blockNumber)Fee(uint16 rate,address recipient)Order(address trader,uint8 side,address matchingPolicy,address collection,uint256 tokenId,uint256 amount,address paymentToken,uint256 price,uint256 listingTime,uint256 expirationTime,Fee[] fees,uint256 salt,bytes extraParams,uint256 nonce)"
+    // );
+    
     bytes32 constant public ROOT_TYPEHASH = keccak256(
         "Root(bytes32 root)"
     );
@@ -136,19 +138,19 @@ contract EIP712 {
         ));
     }
 
-    function _hashToSignOracle(bytes32 orderHash, uint256 blockNumber)
-        internal
-        view
-        returns (bytes32 hash)
-    {
-        return keccak256(abi.encodePacked(
-            "\x19\x01",
-            DOMAIN_SEPARATOR,
-            keccak256(abi.encode(
-                ORACLE_ORDER_TYPEHASH,
-                orderHash,
-                blockNumber
-            ))
-        ));
-    }
+    // function _hashToSignOracle(bytes32 orderHash, uint256 blockNumber)
+    //     internal
+    //     view
+    //     returns (bytes32 hash)
+    // {
+    //     return keccak256(abi.encodePacked(
+    //         "\x19\x01",
+    //         DOMAIN_SEPARATOR,
+    //         keccak256(abi.encode(
+    //             ORACLE_ORDER_TYPEHASH,
+    //             orderHash,
+    //             blockNumber
+    //         ))
+    //     ));
+    // }
 }

@@ -80,10 +80,7 @@ export function runExecuteTests(setupTest: any) {
       fee = price.mul(feeRate).div(INVERSE_BASIS_POINT);
       priceMinusFee = price.sub(fee);
 
-      sell = generateOrder(alice, {
-        side: Side.Sell,
-        tokenId,
-      });
+      sell = generateOrder(alice, { side: Side.Sell, tokenId});
 
       buy = generateOrder(bob, { side: Side.Buy, tokenId });
 
@@ -299,9 +296,11 @@ export function runExecuteTests(setupTest: any) {
     it('can cancel multiple orders', async () => {
       const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
       const buyInput2 = await buy2.pack();
+      
       await exchange
         .connect(bob)
         .cancelOrders([buy.parameters, buy2.parameters]);
+
       await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
         'Buy has invalid parameters',
       );
@@ -345,6 +344,7 @@ export function runExecuteTests(setupTest: any) {
         exchange.connect(bob).execute(sellInput, buyInput),
       ).to.be.revertedWith('Orders cannot be matched');
     });
+
     it('should revert policy is not whitelisted', async () => {
       sell.parameters.matchingPolicy = ZERO_ADDRESS;
       buy.parameters.matchingPolicy = ZERO_ADDRESS;

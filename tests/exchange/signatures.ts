@@ -1,9 +1,18 @@
 import { Contract, ethers, Wallet, Signature } from 'ethers';
 import { MerkleTree } from 'merkletreejs';
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
-const { eip712Hash, hashStruct } = TypedDataUtils;
-
 import { OrderParameters, OrderWithNonce, TypedData } from './utils';
+
+const { 
+  eip712Hash, 
+  hashStruct,
+
+  encodeData,
+  encodeType,
+  findTypeDependencies,
+  hashType,
+  sanitizeData,
+} = TypedDataUtils;
 
 const eip712Fee = {
   name: 'Fee',
@@ -33,13 +42,6 @@ const eip712Order = {
   ],
 };
 
-// const eip712OracleOrder = {
-//   name: 'OracleOrder',
-//   fields: [
-//     { name: 'order', type: 'Order' },
-//     { name: 'blockNumber', type: 'uint256' },
-//   ],
-// };
 
 function structToSign(order: OrderWithNonce, exchange: string): TypedData {
 
@@ -56,66 +58,30 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
   };
 }
 
-// export async function oracleSign(order: OrderParameters, account: Wallet, exchange: Contract, blockNumber: number): Promise<Signature> {
-  
-//   const nonce = await exchange.nonces(order.trader);
-//   const str = structToSign({ ...order, nonce }, exchange.address);
-//   return account
-//     ._signTypedData(
-//       str.domain,
-//       {
-//         [eip712Fee.name]: eip712Fee.fields,
-//         [eip712Order.name]: eip712Order.fields,
-//         [eip712OracleOrder.name]: eip712OracleOrder.fields,
-//       },
-//       { order: str.data, blockNumber },
-//     )
-//     .then((sigBytes) => {
-//       const sig = ethers.utils.splitSignature(sigBytes);
-//       return sig;
-//     });
-// }
-
 export async function sign(order: OrderParameters, account: Wallet, exchange: Contract): Promise<Signature> {
 
   const nonce = await exchange.nonces(order.trader);
-  const str = structToSign({ ...order, nonce }, exchange.address);
+  const _struct_to_sign = structToSign({ ...order, nonce }, exchange.address);
+  
+  const _domain = _struct_to_sign.domain;
+  const _types = {
+    [eip712Fee.name]: eip712Fee.fields,
+    [eip712Order.name]: eip712Order.fields,
+  }
 
-  return account
-    ._signTypedData(
-      str.domain,
-      {
-        [eip712Fee.name]: eip712Fee.fields,
-        [eip712Order.name]: eip712Order.fields,
-      },
-      str.data,
-    )
+  const _value = _struct_to_sign.data;
+  
+  const signature = account
+    ._signTypedData(_domain, _types, _value)
     .then(async (sigBytes) => {
       const sig = ethers.utils.splitSignature(sigBytes);
       return sig;
     });
+
+
+  return signature;
 }
 
-export function packSignature(signature: Signature): string {
-  return ethers.utils.defaultAbiCoder.encode(
-    ['uint8', 'bytes32', 'bytes32'],
-    [signature.v, signature.r, signature.s]
-  );
-}
-
-// export function packSignatures(signatures: Signature[]): string {
-//   return ethers.utils.defaultAbiCoder.encode(
-//     signatures.map(() => 'bytes'),
-//     signatures.map(packSignature),
-//   );
-// }
-
-// 构建 MerkleTree, 然后返回 root 
-export function getMerkleProof(leaves: string[]) {
-  const tree = new MerkleTree(leaves, ethers.utils.keccak256, { sort: true });
-  const root = tree.getHexRoot();
-  return { root, tree };
-}
 
 export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract) {
 
@@ -123,6 +89,14 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
 
   const nonce = await exchange.nonces(orders[0].trader);
   const _order = hashWithoutDomain({ ...orders[0], nonce });
+  
+  console.log('root::', root);
+
+  console.log('_order::', _order);
+  console.log('_order::', {...orders[0], nonce: nonce.toNumber(), price: orders[0].price.toString()});
+  console.log('_order.getHexProof:: ', tree.getHexProof(_order));
+  console.log('_order path::', ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]));
+
   const signature = await account
     ._signTypedData(
       {
@@ -141,10 +115,13 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       return sig;
     });
 
+    
+    console.log("signature:", signature.v, signature.r, signature.s);
+
   return {
     path: ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]),
-    r: signature.r,
     v: signature.v,
+    r: signature.r,
     s: signature.s,
   };
 
@@ -158,36 +135,45 @@ async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
       return hashWithoutDomain({ ...order, nonce });
     })
   )
+  console.log('leaves::', leaves);
+
   return getMerkleProof(leaves);
+}
+
+// 构建 MerkleTree, 然后返回 root 
+function getMerkleProof(leaves: string[]) {
+  const tree = new MerkleTree(leaves, ethers.utils.keccak256, { sort: true });
+  const root = tree.getHexRoot();
+  return { root, tree };
 }
 
 export function hash(parameters: any, exchange: Contract): string {
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
 
-  const _hash = eip712Hash(
-    {
-      types: {
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-          { name: 'chainId', type: 'uint256' },
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        [eip712Fee.name]: eip712Fee.fields,
-        [eip712Order.name]: eip712Order.fields,
-      },
-      primaryType: 'Order',
-      domain: {
-        name: 'DMX Exchange',
-        version: '1.0',
-        chainId: 1,
-        verifyingContract: exchange.address,
-      },
-      message: parameters,
+  const _data = {
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      [eip712Fee.name]: eip712Fee.fields,
+      [eip712Order.name]: eip712Order.fields,
     },
-    SignTypedDataVersion.V4,
-  );
+    primaryType: 'Order',
+    domain: {
+      name: 'DMX Exchange',
+      version: '1.0',
+      chainId: 1,
+      verifyingContract: exchange.address,
+    },
+    message: parameters,
+  };
+  
+  const _version = SignTypedDataVersion.V4;
+  const _hash = eip712Hash(_data, _version);
 
   return `0x${_hash.toString('hex')}`;
 
@@ -197,15 +183,14 @@ export function hashWithoutDomain(parameters: any): string {
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
 
-  const _hash = hashStruct(
-    'Order',
-    parameters,
-    {
-      [eip712Fee.name]: eip712Fee.fields,
-      [eip712Order.name]: eip712Order.fields,
-    },
-    SignTypedDataVersion.V4,
-  );
+  const _primaryType = 'Order';
+  const _data = parameters;
+  const _types = {
+    [eip712Fee.name]: eip712Fee.fields,
+    [eip712Order.name]: eip712Order.fields,
+  };
+  const _version = SignTypedDataVersion.V4;
+  const _hash = hashStruct(_primaryType, _data, _types, _version);
 
   return `0x${_hash.toString('hex')}`;
 }

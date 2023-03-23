@@ -22,7 +22,7 @@ interface IDMXExchange {
 
     function setPolicyManager(IPolicyManager _policyManager) external;
 
-    function setOracle(address _oracle) external;
+    // function setOracle(address _oracle) external;
 
     function setBlockRange(uint256 _blockRange) external;
 

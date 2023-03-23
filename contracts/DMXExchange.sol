@@ -21,7 +21,8 @@ import {
   AssetType,
   Fee,
   Order,
-  Input
+  Input,
+  Execution
 } from "./lib/OrderStructs.sol";
 
 /**
@@ -58,14 +59,21 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     string public constant name = "DMX Exchange";
     string public constant version = "1.0";
     uint256 public constant INVERSE_BASIS_POINT = 10000;
-    
+    uint256 private constant MAX_FEE_RATE = 500; // 250
+
     /* Variables */
     IExecutionDelegate public executionDelegate;
     IPolicyManager public policyManager;
-    address public oracle;
+    
+    // address public oracle;
+
     uint256 public blockRange;
     address public pool;
     address public weth;
+
+    uint256 public feeRate;
+    address public feeRecipient;
+
 
     /* Storage */
     mapping(bytes32 => bool) public cancelledOrFilled;
@@ -87,10 +95,12 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
     event NewExecutionDelegate(IExecutionDelegate executionDelegate);
     event NewPolicyManager(IPolicyManager policyManager);
-    event NewOracle(address oracle);
+    
     event NewBlockRange(uint256 blockRange);
     event NewWETH(address weth);
 
+    event NewFeeRate(uint256 feeRate);
+    event NewFeeRecipient(address feeRecipient);
 
     /* Constructor (for ERC1967) */
     function initialize(
@@ -114,7 +124,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         blockRange = 20;
         isOpen = 1;
 
-        oracle = msg.sender;
+        // oracle = msg.sender;
     }
 
 
@@ -129,8 +139,8 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     function execute(Input calldata sell, Input calldata buy)
         external
         payable
-        reentrancyGuard
         whenOpen
+        reentrancyGuard
     {
         require(sell.order.side == Side.Sell);
 
@@ -153,9 +163,11 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
             sell.order.fees,
             price
         );
+
         _executeTokenTransfer(
             sell.order.collection,
             sell.order.trader,
+            
             buy.order.trader,
             tokenId,
             amount,
@@ -166,8 +178,10 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         cancelledOrFilled[sellHash] = true;
         cancelledOrFilled[buyHash] = true;
 
-        // 卖方时间在前， 卖方是挂单者
+        // 卖方时间在前， 卖方是 挂单者， 买方是 吃单者
         address maker = sell.order.listingTime <= buy.order.listingTime ? sell.order.trader : buy.order.trader;
+
+        // 买方时间在前， 买方是 挂单者,  卖方是 吃单者
         address taker = sell.order.listingTime > buy.order.listingTime ? sell.order.trader : buy.order.trader;
 
         emit OrdersMatched(
@@ -178,6 +192,24 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
             buy.order,
             buyHash
         );
+
+    }
+
+    function bulkExecute(Execution[] calldata executions)
+        external
+        payable
+        whenOpen
+    {
+        uint256 executionsLength = executions.length;
+
+        if (executionsLength == 0) revert("No orders to execute");
+
+        for (uint8 i = 0; i < executionsLength; i++) {
+            bytes memory data = abi.encodeWithSelector(this.execute.selector, executions[i].sell, executions[i].buy);
+            (bool success,) = address(this).delegatecall(data);
+
+            if(!success) revert("BulkExecute faild ");
+        }
     }
 
     /**
@@ -232,14 +264,14 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         emit NewPolicyManager(policyManager);
     }
 
-    function setOracle(address _oracle)
-        external
-        onlyOwner
-    {
-        require(_oracle != address(0), "Address cannot be zero");
-        oracle = _oracle;
-        emit NewOracle(oracle);
-    }
+    // function setOracle(address _oracle)
+    //     external
+    //     onlyOwner
+    // {
+    //     require(_oracle != address(0), "Address cannot be zero");
+    //     oracle = _oracle;
+    //     emit NewOracle(oracle);
+    // }
 
      function setWETH(address _weth)
         external
@@ -257,6 +289,24 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         blockRange = _blockRange;
         emit NewBlockRange(blockRange);
     }
+
+    function setFeeRate(uint256 _feeRate)
+        external
+        onlyOwner
+    {
+        require(_feeRate <= MAX_FEE_RATE, "Fee cannot be more than 2.5%");
+        feeRate = _feeRate;
+        emit NewFeeRate(feeRate);
+    }
+
+    function setFeeRecipient(address _feeRecipient)
+        external
+        onlyOwner
+    {
+        feeRecipient = _feeRecipient;
+        emit NewFeeRecipient(feeRecipient);
+    }
+
 
 
     /* Internal Functions */
@@ -377,35 +427,35 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         return _recover(hashToSign, v, r, s) == trader;
     }
 
-    /**
-     * @dev Verify the validity of oracle signature
-     * @param orderHash hash of the order
-     * @param signatureVersion signature version
-     * @param extraSignature 打包的 oracle 签名
-     * @param blockNumber block number used in oracle signature
-     */
-    function _validateOracleAuthorization(
-        bytes32 orderHash,
-        SignatureVersion signatureVersion,
-        bytes calldata extraSignature,
-        uint256 blockNumber
-    ) internal view returns (bool) {
-        bytes32 oracleHash = _hashToSignOracle(orderHash, blockNumber);
+    // /**
+    //  * @dev Verify the validity of oracle signature
+    //  * @param orderHash hash of the order
+    //  * @param signatureVersion signature version
+    //  * @param extraSignature 打包的 oracle 签名
+    //  * @param blockNumber block number used in oracle signature
+    //  */
+    // function _validateOracleAuthorization(
+    //     bytes32 orderHash,
+    //     SignatureVersion signatureVersion,
+    //     bytes calldata extraSignature,
+    //     uint256 blockNumber
+    // ) internal view returns (bool) {
+    //     bytes32 oracleHash = _hashToSignOracle(orderHash, blockNumber);
 
-        uint8 v; bytes32 r; bytes32 s;
-        if (signatureVersion == SignatureVersion.Single) {
-            (v, r, s) = abi.decode(extraSignature, (uint8, bytes32, bytes32));
-        } else if (signatureVersion == SignatureVersion.Bulk) {
-            /* If the signature was a bulk listing the merkle path musted be unpacked before the oracle signature. 
-                如果签名是批量列表,  则必须在 oracle 签名之前解压缩 merkle 路径
-            */
-            (bytes32[] memory merklePath, uint8 _v, bytes32 _r, bytes32 _s) = abi.decode(extraSignature, (bytes32[], uint8, bytes32, bytes32));
+    //     uint8 v; bytes32 r; bytes32 s;
+    //     if (signatureVersion == SignatureVersion.Single) {
+    //         (v, r, s) = abi.decode(extraSignature, (uint8, bytes32, bytes32));
+    //     } else if (signatureVersion == SignatureVersion.Bulk) {
+    //         /* If the signature was a bulk listing the merkle path musted be unpacked before the oracle signature. 
+    //             如果签名是批量列表,  则必须在 oracle 签名之前解压缩 merkle 路径
+    //         */
+    //         (bytes32[] memory merklePath, uint8 _v, bytes32 _r, bytes32 _s) = abi.decode(extraSignature, (bytes32[], uint8, bytes32, bytes32));
             
-            v = _v; r = _r; s = _s;
-        }
+    //         v = _v; r = _r; s = _s;
+    //     }
 
-        return _recover(oracleHash, v, r, s) == oracle;
-    }
+    //     return _recover(oracleHash, v, r, s) == oracle;
+    // }
 
     /**
      * @dev Wrapped ecrecover with safety check for v parameter
@@ -472,6 +522,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         /* Transfer remainder to seller. */
         _transferTo(paymentToken, buyer, seller, receiveAmount);
+    
     }
 
     /**
@@ -489,11 +540,21 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     ) internal returns (uint256) {
         
         uint256 totalFee = 0;
+        
+        // 协议费
+        if (feeRate > 0) {
+            uint256 fee = (price * feeRate) / INVERSE_BASIS_POINT;
+            _transferTo(paymentToken, from, feeRecipient, fee);
+            totalFee += fee;
+        }
+
+        // 版税 
         for (uint8 i = 0; i < fees.length; i++) {
             uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT;
             _transferTo(paymentToken, from, fees[i].recipient, fee);
             totalFee += fee;
         }
+        
 
         require(totalFee <= price, "Total amount of fees are more than the price");
 
@@ -576,4 +637,27 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         }
         return size > 0;
     }
+
+    /**
+     * @TODO: 返回 bulkExecute 执行后剩余的 ETH
+     */
+    // function _returnDust() private {
+    //     uint256 _remainingETH = remainingETH;
+    //     assembly {
+    //         if gt(_remainingETH, 0) {
+    //             let callStatus := call(
+    //                 gas(),
+    //                 caller(),
+    //                 _remainingETH,
+    //                 0,
+    //                 0,
+    //                 0,
+    //                 0
+    //             )
+    //             if iszero(callStatus) {
+    //               revert(0, 0)
+    //             }
+    //         }
+    //     }
+    // }
 }

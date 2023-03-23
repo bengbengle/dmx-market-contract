@@ -1,13 +1,16 @@
 {
-  "name": "blur-exchange",
+  "name": "DMXExchange",
   "version": "1.0.0",
-  "author": "Blur",
+  "author": "DMX",
   "license": "MIT",
   "scripts": {
     "setup": "cp .env.example .env",
-    "compile": "hardhat compile",
     "coverage": "hardhat coverage",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy": "hardhat deploy",
+    "run_upgrade": "hardhat upgrade",
+    "deploy:testnet:goerli": "PROFILE=testnet hardhat run scripts/deploy.ts --network goerli"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",
@@ -18,14 +21,22 @@
     "@ethersproject/bignumber": "^5.4.1",
     "@ethersproject/bytes": "^5.4.0",
     "@ethersproject/providers": "^5.4.5",
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-etherscan": "^2.1.6",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "hardhat": "^2.11.2",
+    "hardhat-gas-reporter": "^1.0.9",
+    "@nomiclabs/hardhat-ethers": "^2.1.1",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
+    "@typechain/hardhat": "^6.1.3",
+    "@typechain/ethers-v5": "^10.1.0",
+
     "@types/chai": "^4.2.21",
     "@types/fs-extra": "^9.0.12",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.7.10",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^4.30.0",
     "chai": "^4.3.4",
     "commitizen": "^4.2.4",
@@ -38,8 +49,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "5.6.0",
     "fs-extra": "^10.0.0",
-    "hardhat": "2.9.0",
-    "hardhat-gas-reporter": "^1.0.4",
+  
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "mocha": "^9.1.1",
@@ -48,10 +58,10 @@
     "shelljs": "^0.8.4",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
-    "solidity-coverage": "^0.7.21",
+    "solidity-coverage": "^0.8.1",
     "ts-generator": "^0.1.1",
     "ts-node": "^10.2.1",
-    "typechain": "^5.1.2",
+    "typechain": "^8.1.0",
     "typescript": "^4.4.2"
   },
   "dependencies": {
@@ -59,7 +69,6 @@
     "@ethersproject/abstract-provider": "^5.4.1",
     "@makerdao/hardhat-utils": "^0.1.3",
     "@nomiclabs/ethereumjs-vm": "^4.2.2",
-    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "4.4.1",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
     "@types/chai-almost": "^1.0.1",

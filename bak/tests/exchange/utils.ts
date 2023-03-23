@@ -92,10 +92,7 @@ export class Order {
           this.parameters,
           options.oracle || this.admin,
           this.exchange,
-          options.blockNumber ||
-            (
-              await ethers.provider.getBlock('latest')
-            ).number,
+          options.blockNumber || (await ethers.provider.getBlock('latest')).number
         ),
       ),
       signatureVersion: 0,

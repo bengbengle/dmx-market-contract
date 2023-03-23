@@ -18,18 +18,13 @@ export async function deploy(
   return contract;
 }
 
-export interface SetupExchangeOpts {
-  admin: any;
-}
 export interface SetupExchangeResult {
   exchange: Contract;
   executionDelegate: Contract;
   matchingPolicies: Record<string, Contract>;
 }
 
-export type SetupExchangeFunction = (
-  opts: SetupExchangeOpts,
-) => Promise<SetupExchangeResult>;
+export type SetupExchangeFunction = () => Promise<SetupExchangeResult>;
 
 interface SetupTestOpts {
   price: BigNumber;
@@ -67,7 +62,11 @@ async function setupRegistry(
   mockERC721: Contract,
   weth: Contract,
   executionDelegate: Contract,
+  exchange: Contract
+
 ) {
+  await exchange.setWETH(weth.address);
+
   await mockERC721
     .connect(alice)
     .setApprovalForAll(executionDelegate.address, true);
@@ -113,11 +112,9 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
 
   const { weth, mockERC721, tokenId } = await setupMocks(alice, bob);
   
-  const { exchange, executionDelegate, matchingPolicies } = await setupExchange({admin});
-  
-  await exchange.setWETH(weth.address);
+  const { exchange, executionDelegate, matchingPolicies } = await setupExchange();
 
-  await setupRegistry(alice, bob, mockERC721, weth, executionDelegate);
+  await setupRegistry(alice, bob, mockERC721, weth, executionDelegate, exchange);
 
   const checkBalances = async (
     aliceEth: any,
@@ -149,6 +146,7 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
   };
 
   const generateOrder = (account: Wallet, overrides: any = {}): Order => {
+    
     return new Order(
       account,
       {
@@ -172,7 +170,6 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
         extraParams: '0x',
         ...overrides,
       },
-      admin,
       exchange,
     );
   };

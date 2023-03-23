@@ -2,8 +2,9 @@ import assert from 'assert';
 import { ContractReceipt, Signer } from 'ethers';
 import { getContractAddress } from 'ethers/lib/utils';
 import fs from 'fs';
+import { resolve } from 'path';
 
-const DEPLOYMENTS_DIR = `../deployments`;
+const DEPLOYMENTS_DIR = `../artifacts/contracts`;
 
 export function getRequiredEnv(key: string): string {
   const value = process.env[key];
@@ -102,8 +103,10 @@ export function save(name: string, contract: any, network: string) {
 }
 
 export function load(name: string, network: string) {
+  const _dir = `${DEPLOYMENTS_DIR}/${name}.sol/${name}.json`
+
   const { address } = JSON.parse(
-    fs.readFileSync(`${DEPLOYMENTS_DIR}/${network}/${name}.json`).toString(),
+    fs.readFileSync(`${DEPLOYMENTS_DIR}/${name}.sol/${name}.json`).toString(),
   );
   return address;
 }
@@ -114,15 +117,16 @@ export function asDec(address: string): string {
 
 export async function deploy(hre: any, name: string, calldata: any = [], options: any = {}, saveName = '') {
 
-  console.log(`Deploying: ${name}...`);
+
   const contractFactory = await hre.ethers.getContractFactory(name, options);
+
   const contract = await contractFactory.deploy(...calldata);
 
-  save(saveName || name, contract, hre.network.name);
-
-  // console.log(`Deployed: ${name} to: ${contract.address}`);
+  console.log('saveName || name, contract, hre.network.name::', saveName || name, contract.address, hre.network.name)
+  // save(saveName || name, contract, hre.network.name);
 
   await contract.deployed();
+
   return contract;
 }
 

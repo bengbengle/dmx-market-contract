@@ -3,7 +3,7 @@ import { getContract as _getContract, updateAddresses as _updateAddresses, getAd
 const repo = 'DMXExchange';
 
 const contracts = {
-  DMXExchange: 'BLUR_EXCHANGE',
+  DMXExchange: 'DMX_EXCHANGE',
   ExecutionDelegate: 'EXECUTION_DELEGATE',
   PolicyManager: 'POLICY_MANAGER',
   StandardPolicyERC721: 'STANDARD_POLICY_ERC721',

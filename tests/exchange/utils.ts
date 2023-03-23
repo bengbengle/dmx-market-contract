@@ -4,8 +4,7 @@ import { parseEther } from 'ethers/lib/utils';
 import { ethers } from 'hardhat';
 import { hashWithoutDomain, hash } from './signatures';
 
-// import { oracleSign, packSignature, sign, signBulk } from './signatures';
-import { packSignature, sign, signBulk } from './signatures';
+import { sign, signBulk } from './signatures';
 
 export enum Side {
   Buy = 0,
@@ -50,18 +49,15 @@ export interface OrderWithNonce extends OrderParameters {
 export class Order {
   parameters: OrderParameters;
   user: any;
-  admin: any;
   exchange: any;
 
   constructor(
     user: any,
     parameters: OrderParameters,
-    admin: any,
     exchange: any,
   ) {
     this.user = user;
     this.parameters = parameters;
-    this.admin = admin;
     this.exchange = exchange;
   }
 
@@ -83,23 +79,13 @@ export class Order {
       options.signer || this.user,
       this.exchange,
     );
+    const {v, r, s} = signature;
     return {
       order: this.parameters,
-      v: signature.v,
-      r: signature.r,
-      s: signature.s,
+      v,
+      r,
+      s,
       extraSignature: '0x',
-      // extraSignature: packSignature(
-      //   await oracleSign(
-      //     this.parameters,
-      //     options.oracle || this.admin,
-      //     this.exchange,
-      //     options.blockNumber ||
-      //       (
-      //         await ethers.provider.getBlock('latest')
-      //       ).number,
-      //   ),
-      // ),
       signatureVersion: SignatureVersion.Single,
       blockNumber: (await ethers.provider.getBlock('latest')).number,
     };
@@ -116,26 +102,15 @@ export class Order {
       blockNumber: (await ethers.provider.getBlock('latest')).number
     };
   }
-
-  async packNoOracleSig() {
-    const signature = await sign(this.parameters, this.user, this.exchange);
-    return {
-      order: this.parameters,
-      v: signature.v,
-      r: signature.r,
-      s: signature.s,
-      extraSignature: '0x',
-      signatureVersion: SignatureVersion.Single,
-      blockNumber: (await ethers.provider.getBlock('latest')).number
-    };
-  }
-
-  async packBulkNoOracleSig(otherOrders: OrderParameters[]) {
+  
+  // 只有 卖方 才能挂 Bulk 单 
+  async packBulk(otherOrders: Order[]) {
     const { path, r, v, s } = await signBulk(
-      [this.parameters, ...otherOrders],
+      [this.parameters, ...otherOrders.map((_) => _.parameters)],
       this.user,
       this.exchange,
     );
+    
     return {
       order: this.parameters,
       r,
@@ -146,41 +121,6 @@ export class Order {
       blockNumber: (await ethers.provider.getBlock('latest')).number,
     };
   }
-
-  async packBulk(otherOrders: Order[]) {
-    const { path, r, v, s } = await signBulk(
-      [this.parameters, ...otherOrders.map((_) => _.parameters)],
-      this.user,
-      this.exchange,
-    );
-
-  //   const oracleSig = await oracleSign(
-  //     this.parameters,
-  //     this.admin,
-  //     this.exchange,
-  //     (
-  //       await ethers.provider.getBlock('latest')
-  //     ).number,
-  //   );
-
-  //   return {
-  //     order: this.parameters,
-  //     r,
-  //     v,
-  //     s,
-  //     extraSignature: ethers.utils.defaultAbiCoder.encode(
-  //       ['bytes32[]', 'uint8', 'bytes32', 'bytes32'],
-  //       [
-  //         ethers.utils.defaultAbiCoder.decode(['bytes32[]'], path)[0],
-  //         oracleSig.v,
-  //         oracleSig.r,
-  //         oracleSig.s,
-  //       ],
-  //     ),
-  //     signatureVersion: SignatureVersion.Bulk,
-  //     blockNumber: (await ethers.provider.getBlock('latest')).number,
-  //   };
-  // }
 }
 
 export interface Field {

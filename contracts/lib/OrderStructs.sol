@@ -35,3 +35,8 @@ struct Input {
     SignatureVersion signatureVersion;
     uint256 blockNumber;
 }
+
+struct Execution {
+  Input sell;
+  Input buy;
+}

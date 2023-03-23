@@ -11,7 +11,6 @@ const contracts = {
   ExecutionDelegate: 'EXECUTION_DELEGATE',
   PolicyManager: 'POLICY_MANAGER',
   StandardPolicyERC721: 'STANDARD_POLICY_ERC721',
-  // StandardPolicyERC1155: 'STANDARD_POLICY_ERC1155',
   MerkleVerifier: 'MERKLE_VERIFIER',
 };
 

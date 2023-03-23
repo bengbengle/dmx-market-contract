@@ -1,17 +1,24 @@
 import 'hardhat-gas-reporter';
-import 'hardhat-tracer';
-import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import 'solidity-coverage';
-// import './scripts/deploy';
+import '@nomicfoundation/hardhat-toolbox';
 
 import { config as dotenvConfig } from 'dotenv';
-import { HardhatUserConfig } from 'hardhat/config';
+import { HardhatUserConfig, task } from 'hardhat/config';
 import { NetworkUserConfig } from 'hardhat/types';
 import { resolve } from 'path';
+import { ethers } from "ethers"
+
+import './scripts/deploy'
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
+
+task("accounts", "accounts", async () => {
+  let version = ethers.version
+  console.log('version::', version);
+});
+
 
 const chainIds = {
   goerli: 5,
@@ -82,7 +89,7 @@ const config: HardhatUserConfig = {
     tests: './tests',
   },
   gasReporter: {
-    enabled: !!process.env.REPORT_GAS,
+    enabled: false,
     currency: "USD",
   },
 };

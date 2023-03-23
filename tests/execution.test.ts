@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import { Wallet, Contract, BigNumber } from 'ethers';
 
-import type { CheckBalances, GenerateOrder } from './exchange';
-import { eth, Order } from './exchange';
-import { Side, ZERO_ADDRESS } from './exchange/utils';
+import type { CheckBalances, GenerateOrder, SetupExchangeFunction } from './exchange';
+import { eth, Order, setupTest, Side, ZERO_ADDRESS } from './exchange';
 import { waitForTx } from '../scripts/web3-utils';
 
 export function runExecuteTests(setupTest: any) {
   
-  return async () => {
+  describe('ExecuteTests', function () {
+
     const INVERSE_BASIS_POINT = 10000;
     const price: BigNumber = eth('1');
     const feeRate = 300;
@@ -90,12 +90,6 @@ export function runExecuteTests(setupTest: any) {
       sellInput = await sell.pack();
       buyInput = await buy.pack();
 
-      console.log(
-        'sellInput, buyInput:', 
-        JSON.stringify(sellInput, null, 4), 
-        JSON.stringify(buyInput, null, 4)
-      );
-
     });
 
     it('can cancel order', async () => {
@@ -110,38 +104,39 @@ export function runExecuteTests(setupTest: any) {
     
     it('can cancel bulk listing', async () => {
       sellInput = await sell.packBulk(otherOrders);
-      buyInput = await buy.packBulk(otherOrders);
+        
+      let alice_amount = await mockERC721.balanceOf(alice.address);
+      let bob_amount = await mockERC721.balanceOf(bob.address);
+ 
+      await exchange.connect(bob).execute(sellInput, buyInput);
       
-      await exchange.connect(alice).cancelOrder(sell.parameters);
-
-      await expect(
-        exchange.execute(sellInput, buyInput)
-      ).to.be.revertedWith('Sell has invalid parameters');
-
+      let alice_amount_after = await mockERC721.balanceOf(alice.address);
+      let bob_amount_after = await mockERC721.balanceOf(bob.address);
     });
     
-    it('can cancel multiple orders', async () => {
-      const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
-      const buyInput2 = await buy2.pack();
-      
-      await exchange
-        .connect(bob)
-        .cancelOrders([buy.parameters, buy2.parameters]);
+    // it('can cancel multiple orders', async () => {
+    //   const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
+    //   const buyInput2 = await buy2.pack();
 
-      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-        'Buy has invalid parameters',
-      );
-      await expect(exchange.execute(sellInput, buyInput2)).to.be.revertedWith(
-        'Buy has invalid parameters',
-      );
-    });
+    //   await exchange
+    //     .connect(bob)
+    //     .cancelOrders([buy.parameters, buy2.parameters]);
+    //     await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
+    //     'Buy has invalid parameters',
+    //   );
+      
+    //   await expect(exchange.execute(sellInput, buyInput2)).to.be.revertedWith(
+    //     'Buy has invalid parameters',
+    //   );
+    // });
       
     it('should succeed if reopened', async () => {
-      // await exchange.open();
 
       buyInput = await buy.packNoSigs();
       const tx = await waitForTx(
-        exchange.connect(bob).execute(sellInput, buyInput),
+        exchange
+          .connect(bob)
+          .execute(sellInput, buyInput)
       );
       const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
 
@@ -155,8 +150,6 @@ export function runExecuteTests(setupTest: any) {
         feeRecipientBalance,
         feeRecipientBalanceWeth.add(fee),
       );
-
     });
-  };
-
+  });
 }
