@@ -122,7 +122,7 @@ export async function deploy(hre: any, name: string, calldata: any = [], options
 
   const contract = await contractFactory.deploy(...calldata);
 
-  console.log('saveName || name, contract, hre.network.name::', saveName || name, contract.address, hre.network.name)
+  // console.log('saveName || name, contract, hre.network.name::', saveName || name, contract.address, hre.network.name)
   // save(saveName || name, contract, hre.network.name);
 
   await contract.deployed();

@@ -14,7 +14,7 @@ export function runExecuteTests(setupTest: any) {
     const feeRate = 300;
 
     let exchange: Contract;
-    let executionDelegate: Contract;
+    // let executionDelegate: Contract;
 
     let admin: Wallet;
     let alice: Wallet;
@@ -63,7 +63,7 @@ export function runExecuteTests(setupTest: any) {
         mockERC721,
         tokenId,
         exchange,
-        executionDelegate,
+        // executionDelegate,
         generateOrder,
         checkBalances,
 
@@ -114,24 +114,26 @@ export function runExecuteTests(setupTest: any) {
       let bob_amount_after = await mockERC721.balanceOf(bob.address);
     });
     
-    // it('can cancel multiple orders', async () => {
-    //   const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
-    //   const buyInput2 = await buy2.pack();
+    it('can cancel multiple orders', async () => {
+      const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });
+      const buyInput2 = await buy2.pack();
 
-    //   await exchange
-    //     .connect(bob)
-    //     .cancelOrders([buy.parameters, buy2.parameters]);
-    //     await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-    //     'Buy has invalid parameters',
-    //   );
+      await exchange
+        .connect(bob)
+        .cancelOrders([buy.parameters, buy2.parameters]);
+        await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
+        'Buy has invalid parameters',
+      );
       
-    //   await expect(exchange.execute(sellInput, buyInput2)).to.be.revertedWith(
-    //     'Buy has invalid parameters',
-    //   );
-    // });
       
+      await expect(exchange.execute(sellInput, buyInput2)).to.be.revertedWith(
+        'Buy has invalid parameters',
+      );
+
+    });
+    
+    
     it('should succeed if reopened', async () => {
-
       buyInput = await buy.packNoSigs();
       const tx = await waitForTx(
         exchange
@@ -151,5 +153,6 @@ export function runExecuteTests(setupTest: any) {
         feeRecipientBalanceWeth.add(fee),
       );
     });
+
   });
 }

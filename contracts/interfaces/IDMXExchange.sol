@@ -24,7 +24,7 @@ interface IDMXExchange {
 
     // function setOracle(address _oracle) external;
 
-    function setBlockRange(uint256 _blockRange) external;
+    // function setBlockRange(uint256 _blockRange) external;
 
     function cancelOrder(Order calldata order) external;
 

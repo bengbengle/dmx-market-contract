@@ -56,6 +56,7 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
     },
     data: order,
   };
+  
 }
 
 export async function sign(order: OrderParameters, account: Wallet, exchange: Contract): Promise<Signature> {
@@ -90,12 +91,11 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
   const nonce = await exchange.nonces(orders[0].trader);
   const _order = hashWithoutDomain({ ...orders[0], nonce });
   
-  console.log('root::', root);
-
-  console.log('_order::', _order);
-  console.log('_order::', {...orders[0], nonce: nonce.toNumber(), price: orders[0].price.toString()});
-  console.log('_order.getHexProof:: ', tree.getHexProof(_order));
-  console.log('_order path::', ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]));
+  // console.log('root::', root);
+  // console.log('_order::', _order);
+  // console.log('_order::', {...orders[0], nonce: nonce.toNumber(), price: orders[0].price.toString()});
+  // console.log('_order.getHexProof:: ', tree.getHexProof(_order));
+  // console.log('_order path::', ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]));
 
   const signature = await account
     ._signTypedData(
@@ -115,8 +115,7 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       return sig;
     });
 
-    
-    console.log("signature:", signature.v, signature.r, signature.s);
+    // console.log("signature:", signature.v, signature.r, signature.s);
 
   return {
     path: ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]),
@@ -135,7 +134,6 @@ async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
       return hashWithoutDomain({ ...order, nonce });
     })
   )
-  console.log('leaves::', leaves);
 
   return getMerkleProof(leaves);
 }

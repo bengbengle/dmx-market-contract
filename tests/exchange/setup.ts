@@ -65,7 +65,7 @@ async function setupRegistry(
   exchange: Contract
 
 ) {
-  await exchange.setWETH(weth.address);
+  await exchange.setWethAddress(weth.address);
 
   await mockERC721
     .connect(alice)
@@ -74,13 +74,6 @@ async function setupRegistry(
     await mockERC721
     .connect(bob)
     .setApprovalForAll(executionDelegate.address, true);
-
-  // await mockERC1155
-  //   .connect(alice)
-  //   .setApprovalForAll(executionDelegate.address, true);
-  // await mockERC1155
-  //   .connect(bob)
-  //   .setApprovalForAll(executionDelegate.address, true);
 
   await weth
     .connect(bob)

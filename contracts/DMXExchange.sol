@@ -34,8 +34,27 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     /* Auth */
     uint256 public isOpen;
 
+    bool public isInternal = false;
+
+    uint256 public remainingETH = 0;
+
     modifier whenOpen() {
         require(isOpen == 1, "Closed");
+        _;
+    }
+
+    modifier setupExecution() {
+        require(!isInternal, "Unsafe call"); // 为了清晰起见，添加冗余的重入检查
+
+        remainingETH = msg.value;
+        isInternal = true;
+        _;
+        remainingETH = 0;
+        isInternal = false;
+    }
+
+    modifier internalCall() {
+        require(isInternal, "Unsafe call");
         _;
     }
 
@@ -46,6 +65,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         isOpen = 1;
         emit Opened();
     }
+
     function close() external onlyOwner {
         isOpen = 0;
         emit Closed();
@@ -65,9 +85,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     IExecutionDelegate public executionDelegate;
     IPolicyManager public policyManager;
     
-    // address public oracle;
-
-    uint256 public blockRange;
+    // uint256 public blockRange;
     address public pool;
     address public weth;
 
@@ -96,7 +114,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     event NewExecutionDelegate(IExecutionDelegate executionDelegate);
     event NewPolicyManager(IPolicyManager policyManager);
     
-    event NewBlockRange(uint256 blockRange);
+    // event NewBlockRange(uint256 blockRange);
     event NewWETH(address weth);
 
     event NewFeeRate(uint256 feeRate);
@@ -110,7 +128,6 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         __Ownable_init();
 
-
         DOMAIN_SEPARATOR = _hashDomain(EIP712Domain({
             name              : name,
             version           : version,
@@ -120,11 +137,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         executionDelegate = _executionDelegate;
         policyManager = _policyManager;
-        
-        blockRange = 20;
         isOpen = 1;
-
-        // oracle = msg.sender;
     }
 
 
@@ -140,6 +153,114 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         external
         payable
         whenOpen
+        setupExecution
+    {
+         _execute(sell, buy);
+        _returnDust();
+    }
+
+
+    function bulkExecute(Execution[] calldata executions)
+        external
+        payable
+        whenOpen
+        setupExecution
+    {
+        uint256 executionsLength = executions.length;
+
+        if (executionsLength == 0) revert("No orders to execute");
+
+        for (uint8 i = 0; i < executionsLength; i++) {
+
+            bytes memory data = abi.encodeWithSelector(this._execute.selector, executions[i].sell, executions[i].buy);
+
+            (bool success,) = address(this).delegatecall(data);
+            // if(!success) revert("BulkExecute faild ");
+        }
+
+        _returnDust();
+    }
+
+    /**
+     * @dev Cancel an order, preventing it from being matched. Must be called by the trader of the order
+     * @param order Order to cancel
+     */
+    function cancelOrder(Order calldata order) public {
+        /* Assert sender is authorized to cancel order. */
+        require(msg.sender == order.trader);
+
+        bytes32 hash = _hashOrder(order, nonces[order.trader]);
+
+        if (!cancelledOrFilled[hash]) {
+            /* 将订单标记为已取消, 以防止它被匹配 */
+            cancelledOrFilled[hash] = true;
+            emit OrderCancelled(hash);
+        }
+    }
+
+    /**
+     * @dev Cancel multiple orders
+     * @param orders Orders to cancel
+     */
+    function cancelOrders(Order[] calldata orders) external {
+        for (uint8 i = 0; i < orders.length; i++) {
+            cancelOrder(orders[i]);
+        }
+    }
+
+    /**
+     * @dev Cancel all current orders for a user, preventing them from being matched. Must be called by the trader of the order
+     */
+    function incrementNonce() external {
+        nonces[msg.sender] += 1;
+        emit NonceIncremented(msg.sender, nonces[msg.sender]);
+    }
+
+    /* Setters */
+
+    function setExecutionDelegate(IExecutionDelegate _executionDelegate) external onlyOwner {
+        require(address(_executionDelegate) != address(0), "Address cannot be zero");
+        executionDelegate = _executionDelegate;
+        emit NewExecutionDelegate(executionDelegate);
+    }
+
+    // set policy manager
+    function setPolicyManager(IPolicyManager _policyManager)
+        external
+        onlyOwner
+    {
+        require(address(_policyManager) != address(0), "Address cannot be zero");
+        policyManager = _policyManager;
+        emit NewPolicyManager(policyManager);
+    }
+
+    // set weth 地址
+    function setWethAddress(address _weth) external onlyOwner
+    {
+        require(_weth != address(0), "Address cannot be zero");
+        weth = _weth;
+        emit NewWETH(weth);
+    }
+
+    function setFeeRate(uint256 _feeRate) external onlyOwner
+    {
+        require(_feeRate <= MAX_FEE_RATE, "Fee cannot be more than 2.5%");
+        feeRate = _feeRate;
+        emit NewFeeRate(feeRate);
+    }
+
+    function setFeeRecipient(address _feeRecipient) external onlyOwner
+    {
+        feeRecipient = _feeRecipient;
+        emit NewFeeRecipient(feeRecipient);
+    }
+
+    /* Internal Functions */
+
+    function _execute(Input calldata sell, Input calldata buy)
+        public
+        payable
+        internalCall
         reentrancyGuard
     {
         require(sell.order.side == Side.Sell);
@@ -192,124 +313,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
             buy.order,
             buyHash
         );
-
     }
-
-    function bulkExecute(Execution[] calldata executions)
-        external
-        payable
-        whenOpen
-    {
-        uint256 executionsLength = executions.length;
-
-        if (executionsLength == 0) revert("No orders to execute");
-
-        for (uint8 i = 0; i < executionsLength; i++) {
-            bytes memory data = abi.encodeWithSelector(this.execute.selector, executions[i].sell, executions[i].buy);
-            (bool success,) = address(this).delegatecall(data);
-
-            if(!success) revert("BulkExecute faild ");
-        }
-    }
-
-    /**
-     * @dev Cancel an order, preventing it from being matched. Must be called by the trader of the order
-     * @param order Order to cancel
-     */
-    function cancelOrder(Order calldata order) public {
-        /* Assert sender is authorized to cancel order. */
-        require(msg.sender == order.trader);
-
-        bytes32 hash = _hashOrder(order, nonces[order.trader]);
-
-        if (!cancelledOrFilled[hash]) {
-            /* 将订单标记为已取消, 以防止它被匹配 */
-            cancelledOrFilled[hash] = true;
-            emit OrderCancelled(hash);
-        }
-    }
-
-    /**
-     * @dev Cancel multiple orders
-     * @param orders Orders to cancel
-     */
-    function cancelOrders(Order[] calldata orders) external {
-        for (uint8 i = 0; i < orders.length; i++) {
-            cancelOrder(orders[i]);
-        }
-    }
-
-    /**
-     * @dev Cancel all current orders for a user, preventing them from being matched. Must be called by the trader of the order
-     */
-    function incrementNonce() external {
-        nonces[msg.sender] += 1;
-        emit NonceIncremented(msg.sender, nonces[msg.sender]);
-    }
-
-    /* Setters */
-
-    function setExecutionDelegate(IExecutionDelegate _executionDelegate) external onlyOwner {
-        require(address(_executionDelegate) != address(0), "Address cannot be zero");
-        executionDelegate = _executionDelegate;
-        emit NewExecutionDelegate(executionDelegate);
-    }
-
-    function setPolicyManager(IPolicyManager _policyManager)
-        external
-        onlyOwner
-    {
-        require(address(_policyManager) != address(0), "Address cannot be zero");
-        policyManager = _policyManager;
-        emit NewPolicyManager(policyManager);
-    }
-
-    // function setOracle(address _oracle)
-    //     external
-    //     onlyOwner
-    // {
-    //     require(_oracle != address(0), "Address cannot be zero");
-    //     oracle = _oracle;
-    //     emit NewOracle(oracle);
-    // }
-
-     function setWETH(address _weth)
-        external
-        onlyOwner
-    {
-        require(_weth != address(0), "Address cannot be zero");
-        weth = _weth;
-        emit NewWETH(weth);
-    }
-
-    function setBlockRange(uint256 _blockRange)
-        external
-        onlyOwner
-    {
-        blockRange = _blockRange;
-        emit NewBlockRange(blockRange);
-    }
-
-    function setFeeRate(uint256 _feeRate)
-        external
-        onlyOwner
-    {
-        require(_feeRate <= MAX_FEE_RATE, "Fee cannot be more than 2.5%");
-        feeRate = _feeRate;
-        emit NewFeeRate(feeRate);
-    }
-
-    function setFeeRecipient(address _feeRecipient)
-        external
-        onlyOwner
-    {
-        feeRecipient = _feeRecipient;
-        emit NewFeeRecipient(feeRecipient);
-    }
-
-
-
-    /* Internal Functions */
 
     /**
      * @dev Verify the validity of the order parameters
@@ -374,21 +378,6 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
             return false;
         }
 
-        // if (order.order.expirationTime == 0) {
-        //     /* Check oracle authorization. */
-        //     require(block.number - order.blockNumber < blockRange, "Signed block number out of range");
-        //     if (
-        //         !_validateOracleAuthorization(
-        //             orderHash,
-        //             order.signatureVersion,
-        //             order.extraSignature,
-        //             order.blockNumber
-        //         )
-        //     ) {
-        //         return false;
-        //     }
-        // }
-
         return true;
     }
 
@@ -426,36 +415,6 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         return _recover(hashToSign, v, r, s) == trader;
     }
-
-    // /**
-    //  * @dev Verify the validity of oracle signature
-    //  * @param orderHash hash of the order
-    //  * @param signatureVersion signature version
-    //  * @param extraSignature 打包的 oracle 签名
-    //  * @param blockNumber block number used in oracle signature
-    //  */
-    // function _validateOracleAuthorization(
-    //     bytes32 orderHash,
-    //     SignatureVersion signatureVersion,
-    //     bytes calldata extraSignature,
-    //     uint256 blockNumber
-    // ) internal view returns (bool) {
-    //     bytes32 oracleHash = _hashToSignOracle(orderHash, blockNumber);
-
-    //     uint8 v; bytes32 r; bytes32 s;
-    //     if (signatureVersion == SignatureVersion.Single) {
-    //         (v, r, s) = abi.decode(extraSignature, (uint8, bytes32, bytes32));
-    //     } else if (signatureVersion == SignatureVersion.Bulk) {
-    //         /* If the signature was a bulk listing the merkle path musted be unpacked before the oracle signature. 
-    //             如果签名是批量列表,  则必须在 oracle 签名之前解压缩 merkle 路径
-    //         */
-    //         (bytes32[] memory merklePath, uint8 _v, bytes32 _r, bytes32 _s) = abi.decode(extraSignature, (bytes32[], uint8, bytes32, bytes32));
-            
-    //         v = _v; r = _r; s = _s;
-    //     }
-
-    //     return _recover(oracleHash, v, r, s) == oracle;
-    // }
 
     /**
      * @dev Wrapped ecrecover with safety check for v parameter
@@ -509,19 +468,26 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     function _executeFundsTransfer(
         address seller,
         address buyer,
+
         address paymentToken,
-        Fee[] calldata fees,
+        
+        Fee[] calldata fees, // 版税
         uint256 price
     ) internal {
+      
         if (paymentToken == address(0)) {
-            require(msg.value == price);
+            // 买家才能使用  ETH,  seller 执行，也就是接收 bid 出售NFT 的时候, 只能使用 WETH 或者 BlurPool ETH
+            require(msg.sender == buyer, "Cannot use ETH");  
+            require(remainingETH >= price, "Insufficient value");
+
+            remainingETH -= price;
         }
 
         /* Take fee. */
-        uint256 receiveAmount = _transferFees(fees, paymentToken, buyer, price);
+        uint256 totalFeesPaid = _transferFees(fees, paymentToken, buyer, price);
 
         /* Transfer remainder to seller. */
-        _transferTo(paymentToken, buyer, seller, receiveAmount);
+        _transferTo(paymentToken, buyer, seller, price - totalFeesPaid);
     
     }
 
@@ -538,30 +504,26 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         address from,
         uint256 price
     ) internal returns (uint256) {
-        
+
         uint256 totalFee = 0;
-        
-        // 协议费
+
+        /* 如果启用, 收取 协议费 */
         if (feeRate > 0) {
             uint256 fee = (price * feeRate) / INVERSE_BASIS_POINT;
-            _transferTo(paymentToken, from, feeRecipient, fee);
+            _transferTo(paymentToken, from, feeRecipient, fee); // 收取 协议费
             totalFee += fee;
         }
 
-        // 版税 
+        /* 收取 版税  */
         for (uint8 i = 0; i < fees.length; i++) {
-            uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT;
+            uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT; // 收取版税，可能有 多笔
             _transferTo(paymentToken, from, fees[i].recipient, fee);
             totalFee += fee;
         }
-        
 
-        require(totalFee <= price, "Total amount of fees are more than the price");
+        require(totalFee <= price, "Fees are more than the price");
 
-        /* Amount that will be received by seller. */
-        uint256 receiveAmount = price - totalFee;
-
-        return (receiveAmount);
+        return totalFee;
     }
 
     /**
@@ -639,25 +601,25 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     }
 
     /**
-     * @TODO: 返回 bulkExecute 执行后剩余的 ETH
+     * @dev 返回 发送到 bulkExecute 或 执行的剩余 ETH
      */
-    // function _returnDust() private {
-    //     uint256 _remainingETH = remainingETH;
-    //     assembly {
-    //         if gt(_remainingETH, 0) {
-    //             let callStatus := call(
-    //                 gas(),
-    //                 caller(),
-    //                 _remainingETH,
-    //                 0,
-    //                 0,
-    //                 0,
-    //                 0
-    //             )
-    //             if iszero(callStatus) {
-    //               revert(0, 0)
-    //             }
-    //         }
-    //     }
-    // }
+    function _returnDust() private {
+        uint256 _remainingETH = remainingETH;
+        assembly {
+            if gt(_remainingETH, 0) {
+                let callStatus := call(
+                    gas(),
+                    caller(),
+                    _remainingETH,
+                    0,
+                    0,
+                    0,
+                    0
+                )
+                if iszero(callStatus) {
+                  revert(0, 0)
+                }
+            }
+        }
+    }
 }

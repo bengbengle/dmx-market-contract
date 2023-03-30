@@ -40,9 +40,7 @@ export function runMatchingPolicyTests(setupTest: any) {
           expect(price).to.equal(sell.price);
           expect(tokenId).to.equal(sell.tokenId);
           expect(amount).to.equal(1);
-
         });
-        
       });
     });
   }
