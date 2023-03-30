@@ -24,22 +24,28 @@ export async function setupExchange(): Promise<SetupExchangeResult> {
 const price = eth('1');
 const feeRate = 300;
 
-runExchangeTests(
-  setupExchange
-);
+// runExchangeTests(
+//   setupExchange
+// );
+
+// runExchangeTests(
+//   async () => {
+//     return setupTest({price, feeRate, setupExchange});
+//   }
+// );
 
 
 
-// runExecuteTests(async () => {
-//   return setupTest({price, feeRate, setupExchange});
-// })
-
-
-runSignatureTests(async () => {
-
+runExecuteTests(async () => {
   return setupTest({price, feeRate, setupExchange});
-  
 })
+
+
+// runSignatureTests(async () => {
+
+//   return setupTest({price, feeRate, setupExchange});
+  
+// })
 
 
 

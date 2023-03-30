@@ -77,10 +77,7 @@ export function getNetwork(hre: any): {
   };
 }
 
-export async function getAddressOfNextDeployedContract(
-  signer: Signer,
-  offset = 0,
-): Promise<string> {
+export async function getAddressOfNextDeployedContract(signer: Signer, offset = 0): Promise<string> {
   return getContractAddress({
     from: await signer.getAddress(),
     nonce: (await signer.getTransactionCount()) + offset,

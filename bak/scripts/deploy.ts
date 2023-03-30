@@ -64,6 +64,7 @@ export async function deployFull(
 }
 
 task('deploy', 'Deploy').setAction(async (_, hre) => {
+
   const [signer] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
 

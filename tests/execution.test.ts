@@ -11,7 +11,7 @@ export function runExecuteTests(setupTest: any) {
 
     const INVERSE_BASIS_POINT = 10000;
     const price: BigNumber = eth('1');
-    const feeRate = 300;
+    const feeRate = 300; // 3%
 
     let exchange: Contract;
     // let executionDelegate: Contract;
@@ -121,9 +121,7 @@ export function runExecuteTests(setupTest: any) {
       await exchange
         .connect(bob)
         .cancelOrders([buy.parameters, buy2.parameters]);
-        await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-        'Buy has invalid parameters',
-      );
+        await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith('Buy has invalid parameters');
       
       
       await expect(exchange.execute(sellInput, buyInput2)).to.be.revertedWith(
@@ -131,7 +129,6 @@ export function runExecuteTests(setupTest: any) {
       );
 
     });
-    
     
     it('should succeed if reopened', async () => {
       buyInput = await buy.packNoSigs();
@@ -143,16 +140,66 @@ export function runExecuteTests(setupTest: any) {
       const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
 
       expect(await mockERC721.ownerOf(tokenId)).to.be.equal(bob.address);
-
+      
+      
       await checkBalances(
+
         aliceBalance,
         aliceBalanceWeth.add(priceMinusFee),
+
         bobBalance.sub(gasFee),
         bobBalanceWeth.sub(price),
+        
         feeRecipientBalance,
-        feeRecipientBalanceWeth.add(fee),
+        feeRecipientBalanceWeth.add(fee)
+
       );
+
     });
 
+    it('should bulkExecute succeed multiple orders', async () => {
+      await mockERC721.mint(alice.address, 8);
+      await mockERC721.mint(alice.address, 9);
+      const sell1 = generateOrder(alice, { side: Side.Sell, tokenId: 8});
+      const sell2 = generateOrder(alice, { side: Side.Sell, tokenId: 9 });
+
+      const buy1 = generateOrder(bob, { side: Side.Buy, tokenId: 8 });
+      const buy2 = generateOrder(bob, { side: Side.Buy, tokenId: 9 });
+
+
+      const sellInput1 = await sell1.pack();
+      const sellInput2 = await sell2.pack();
+      
+      const buyInput1 = await buy1.packNoSigs();
+      const buyInput2 = await buy2.packNoSigs();
+
+      // console.log('buyInput1:', buyInput1);
+      // console.log('buyInput2:', buyInput2);
+
+      const _execution = { sell: sellInput1, buy: buyInput1 }
+      const _execution1 = { sell: sellInput2, buy: buyInput2 }
+   
+      const tx = await waitForTx(
+        exchange
+          .connect(bob)
+          .bulkExecute([_execution, _execution1])
+      );
+      
+      const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
+      expect(await mockERC721.ownerOf(8)).to.be.equal(bob.address);
+      expect(await mockERC721.ownerOf(9)).to.be.equal(bob.address);
+       
+      
+      await checkBalances(
+        aliceBalance,
+        aliceBalanceWeth.add(priceMinusFee).add(priceMinusFee),
+
+        bobBalance.sub(gasFee),
+        bobBalanceWeth.sub(price).sub(price),
+        
+        feeRecipientBalance,
+        feeRecipientBalanceWeth.add(fee).add(fee)
+      );
+    });
   });
 }

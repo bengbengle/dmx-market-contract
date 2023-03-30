@@ -33,10 +33,7 @@ export function runExchangeTests(
       });
       
       it('cancelled or filled', async () => {
-        // await exchange
-        //   .connect(seller_alice)
-        //   .cancelOrder(order.parameters);
-
+        
         expect(
           await exchange.validateOrderParameters(order.parameters, orderHash),
         ).to.equal(true);

@@ -112,10 +112,13 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
   const checkBalances = async (
     aliceEth: any,
     aliceWeth: any,
+
     bobEth: any,
     bobWeth: any,
+
     feeRecipientEth: any,
     feeRecipientWeth: any,
+  
   ) => {
 
     expect(await alice.getBalance()).to.be.equal(aliceEth);
@@ -125,9 +128,7 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
     expect(await weth.balanceOf(bob.address)).to.be.equal(bobWeth);
     
     expect(
-      
       await (admin.provider as ethers.providers.Provider).getBalance(thirdParty.address)
-
     ).to.be.equal(feeRecipientEth);
     
     expect(

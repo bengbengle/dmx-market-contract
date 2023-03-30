@@ -35,7 +35,7 @@ if (!mnemonic) {
 }
 
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
-  const url = `https://${network}.infura.io/v3/${process.env.infuraApiKey}`;
+  const url = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`;
   return {
     accounts: {
       count: 10,
@@ -43,7 +43,7 @@ function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
       path: "m/44'/60'/0'/0",
     },
     chainId: chainIds[network],
-    url,
+    url: url,
     gasMultiplier: 1.5,
   };
 }
@@ -91,6 +91,9 @@ const config: HardhatUserConfig = {
   gasReporter: {
     enabled: false,
     currency: "USD",
+  },
+  etherscan: {
+    apiKey: "JZ1KK9X9RH91IY6JE997SIW92UTZGEKBZ7",
   },
 };
 

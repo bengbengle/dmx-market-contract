@@ -115,6 +115,10 @@ execution.test
 
 ### 事件
 
+
+
+
+
 ### Delegate
 1. RevokeApproval: 禁用 (用户) 
 2. GrantApproval: 授权 (用户)
@@ -134,4 +138,7 @@ execution.test
 4. NewPolicyManager(管理员) --> setPolicyManager
 5. NewOracle (管理员)   --> setOracle
 6. NewBlockRange(管理员)  --> setBlockRange
+
+
+
 
