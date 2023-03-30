@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { BigNumber, Wallet } from 'ethers';
 
-import type { GenerateOrder, SetupExchangeFunction } from './exchange';
+import type { GenerateOrder, SetupExchangeFunction } from '../exchange';
 
-import { eth, Order, setupTest, Side } from './exchange';
+import { eth, Order, setupTest, Side } from '../exchange';
 
 export function runExchangeTests(
   setupExchange: SetupExchangeFunction,

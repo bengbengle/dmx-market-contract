@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { Wallet } from 'ethers';
 
-import type { GenerateOrder } from './exchange';
-import { eth, Order } from './exchange';
+import type { GenerateOrder } from '../exchange';
+import { eth, Order } from '../exchange';
 
 export function runSignatureTests(setupTest: any) {
 

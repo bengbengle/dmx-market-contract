@@ -11,7 +11,7 @@ import {
   Order, 
   setupTest, 
   Side
-} from './exchange';
+} from '../exchange';
 
 import { deployFull } from '../scripts/deploy';
 

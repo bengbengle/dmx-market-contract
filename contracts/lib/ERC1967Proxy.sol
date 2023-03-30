@@ -31,4 +31,14 @@ contract ERC1967Proxy is Proxy, ERC1967Upgrade {
     function _implementation() internal view virtual override returns (address impl) {
         return ERC1967Upgrade._getImplementation();
     }
+
+
+    /**
+     * @dev 返回当前的实现地址
+     */
+    function implementation() external view returns (address impl) {
+        return ERC1967Upgrade._getImplementation();
+    }
+
+
 }
