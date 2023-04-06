@@ -30,7 +30,7 @@ contract ExecutionDelegate is IExecutionDelegate, Ownable {
     event GrantApproval(address indexed user);
 
     /**
-     * @dev Approve contract to call transfer functions
+     * @dev 批准合约 调用传输函数
      * @param _contract address of contract to approve
      */
     function approveContract(address _contract) onlyOwner external {
@@ -39,7 +39,7 @@ contract ExecutionDelegate is IExecutionDelegate, Ownable {
     }
 
     /**
-     * @dev Revoke approval of contract to call transfer functions
+     * @dev 撤销批准的合约 调用传输函数 
      * @param _contract address of contract to revoke approval
      */
     function denyContract(address _contract) onlyOwner external {
@@ -56,7 +56,7 @@ contract ExecutionDelegate is IExecutionDelegate, Ownable {
     }
 
     /**
-     * @dev Allow contract to make transfers on-behalf of a specific user
+     * @dev 允许合约代表特定用户进行转账
      */
     function grantApproval() external {
         revokedApproval[msg.sender] = false;

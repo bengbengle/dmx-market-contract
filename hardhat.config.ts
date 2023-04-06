@@ -13,6 +13,7 @@ import { ethers } from "ethers"
 import './scripts/deploy'
 import './scripts/mock'
 import './scripts/execution'
+import './scripts/packbulk'
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 

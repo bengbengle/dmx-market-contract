@@ -35,8 +35,6 @@ export async function deployFull(hre: any, exchangeName: string): Promise<{
   const initialize = initializeInterface.encodeFunctionData('initialize', [_executionDelegate, _policyManager]);
 
   const exchangeProxy = await deploy(hre, 'ERC1967Proxy', [exchangeImpl.address, initialize], {}, 'DMXExchangeProxy');
-  
-  await waitForTx(executionDelegate.approveContract(exchangeProxy.address));
 
   const exchange = new hre.ethers.Contract(exchangeProxy.address, exchangeImpl.interface, exchangeImpl.signer);
   

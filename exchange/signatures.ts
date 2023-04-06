@@ -51,7 +51,7 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: 1,
+      chainId: 5,
       verifyingContract: exchange,
     },
     data: order,
@@ -90,14 +90,24 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
   const { tree, root } = await getOrderTreeRoot(orders, exchange);
 
   const nonce = await exchange.nonces(orders[0].trader);
-  const _order = hashWithoutDomain({ ...orders[0], nonce });
-  
+
+  const order_first = hashWithoutDomain({ ...orders[0], nonce });
+  let path_first = ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(order_first)]);
+
+
+  let orders_path = []
+  for(let i = 0; i < orders.length; i++) {
+    let order = hashWithoutDomain({ ...orders[i], nonce })
+    let orderPath = ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(order)]);
+    orders_path.push(orderPath);
+  }
+
   const signature = await account
     ._signTypedData(
       {
         name: 'DMX Exchange',
         version: '1.0',
-        chainId: 1,
+        chainId: 5,
         verifyingContract: exchange.address,
       },
       {
@@ -110,16 +120,16 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       return sig;
     });
 
-    // console.log("signature:", signature.v, signature.r, signature.s);
-
   return {
-    path: ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]),
+    path: path_first,
     v: signature.v,
     r: signature.r,
     s: signature.s,
+    orders_path: orders_path,
   };
-
 }
+
+
 
 // 获取 订单列表的 MerkleProof
 async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
@@ -159,7 +169,39 @@ export function hash(parameters: any, exchange: Contract): string {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: 1,
+      chainId: 5,
+      verifyingContract: exchange.address,
+    },
+    message: parameters,
+  };
+  
+  const _version = SignTypedDataVersion.V4;
+  const _hash = eip712Hash(_data, _version);
+
+  return `0x${_hash.toString('hex')}`;
+
+}
+
+export function hashWithDomain(parameters: any, exchange: Contract, chainId: number = 5): string {
+  parameters.nonce = parameters.nonce.toHexString();
+  parameters.price = parameters.price.toHexString();
+
+  const _data = {
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      [eip712Fee.name]: eip712Fee.fields,
+      [eip712Order.name]: eip712Order.fields,
+    },
+    primaryType: 'Order',
+    domain: {
+      name: 'DMX Exchange',
+      version: '1.0',
+      chainId: chainId,
       verifyingContract: exchange.address,
     },
     message: parameters,

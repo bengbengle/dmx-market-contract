@@ -130,12 +130,10 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
     expect(await bob.getBalance()).to.be.equal(bobEth);
     expect(await weth.balanceOf(bob.address)).to.be.equal(bobWeth);
     expect(
-      await (admin.provider as ethers.providers.Provider).getBalance(
-        thirdParty.address,
-      ),
+      await (admin.provider as ethers.providers.Provider).getBalance(thirdParty.address),
     ).to.be.equal(feeRecipientEth);
-    expect(await weth.balanceOf(thirdParty.address)).to.be.equal(
-      feeRecipientWeth,
+
+    expect(await weth.balanceOf(thirdParty.address)).to.be.equal(feeRecipientWeth,
     );
   };
 
