@@ -11,7 +11,9 @@
     "deploy": "yarn compile && hardhat deploy",
     "upgrade": "yarn compile && hardhat upgrade",
     "run_upgrade": "hardhat upgrade",
-    "deploy:goerli": "hardhat deploy --network goerli"
+    "deploy:goerli": "hardhat deploy --network goerli",
+    "verify:goerli": "hardhat verify --network goerli",
+    "go": "hardhat --network goerli"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",

@@ -65,25 +65,25 @@ export async function deployFull(
 
 task('deploy', 'Deploy').setAction(async (_, hre) => {
 
-  const [signer] = await hre.ethers.getSigners();
+  const [admin] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
 
   console.log(`Deploying exchange on ${network}`);
-  console.log(`Deploying from: ${(await signer.getAddress()).toString()}`);
+  console.log(`Deploying from: ${(await admin.getAddress()).toString()}`);
 
   const WETH_ADDRESS = getAddressEnv('WETH', NETWORK);
 
-  await deployFull(hre, 'DMXExchange', chainId, WETH_ADDRESS, await signer.getAddress() );
+  await deployFull(hre, 'DMXExchange', chainId, WETH_ADDRESS, await admin.getAddress() );
 
   updateAddresses(network);
 });
 
 task('upgrade', 'Upgrade').setAction(async (_, hre) => {
-  const [signer] = await hre.ethers.getSigners();
+  const [admin] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
 
   console.log(`Calling on ${network}`);
-  console.log(`Calling from: ${(await signer.getAddress()).toString()}`);
+  console.log(`Calling from: ${(await admin.getAddress()).toString()}`);
 
   const WETH_ADDRESS = getAddressEnv('WETH_ADDRESS', NETWORK);
   const executionDelegateAddress = getAddress('ExecutionDelegate', network);
@@ -100,7 +100,7 @@ task('upgrade', 'Upgrade').setAction(async (_, hre) => {
     executionDelegateAddress, // _executionDelegate
     WETH_ADDRESS, // _weth
     feeMechanismAddress, // _feeMechanism
-    await signer.getAddress(), // _oracle
+    await admin.getAddress(), // _oracle
     5, // _blockRange
   ]);
   
@@ -189,10 +189,10 @@ task('transfer-admin', 'Transfer Admin to DAO Governance')
   .setAction(async ({ contractName }, hre) => {
     const { network, NETWORK } = getNetwork(hre);
 
-    const [signer] = await hre.ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
 
     console.log(`Calling on ${network}`);
-    console.log(`Calling from: ${await signer.getAddress()}`);
+    console.log(`Calling from: ${await admin.getAddress()}`);
 
     const DAO_ADMIN_ADDRESS = getAddressEnv('DAO_ADMIN', NETWORK);
 

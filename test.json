@@ -1,130 +1,31 @@
-[
-    {
-        "sell": {
-            "order": {
-                "trader": "0x558395439377A3146aF3076B44B51E41504bD588",
-                "side": 1,
-                "matchingPolicy": "0x18e8DC0F5AB80076Bc4A4F9007187A73EE38cd61",
-                "collection": "0x4539885B6c2222d79140044262dbD82E3e7238c7",
-                "tokenId": 10,
-                "amount": 0,
-                "paymentToken": "0x0000000000000000000000000000000000000000",
-                "price": {
-                    "type": "BigNumber",
-                    "hex": "0x0de0b6b3a7640000"
-                },
-                "listingTime": "0",
-                "expirationTime": "0",
-                "fees": [
-                    {
-                        "rate": 300,
-                        "recipient": "0x0017446d75054F370106976DE781ff60b53630Df"
-                    }
-                ],
-                "salt": 0,
-                "extraParams": "0x"
-            },
-            "v": 28,
-            "r": "0xb6016a9f1aa9a3d80e5979570d9d1d5fd90806e75609108d75a298cb1ba148a0",
-            "s": "0x5ea309197f5784b6e38f06a47f1d0918bba9726ed607f8781c1d61d14a55ae2b",
-            "extraSignature": "0x",
-            "signatureVersion": 0,
-            "blockNumber": 21
+{
+    "order": {
+        "trader": "0x558395439377A3146aF3076B44B51E41504bD588",
+        "side": 1,
+        "matchingPolicy": "0x7A6E1b14DcE51275300C3e5617F6891c78bFCEfb",
+        "collection": "0xd7669088673A20aAd8b28636Ce75179bbF7171ab",
+        "tokenId": 4,
+        "amount": 0,
+        "paymentToken": "0x0000000000000000000000000000000000000000",
+        "price": {
+            "type": "BigNumber",
+            "hex": "0x09184e72a000"
         },
-        "buy": {
-            "order": {
-                "trader": "0x9616994B2d6BC4CeF41cCdDAe7C58172546017CE",
-                "side": 0,
-                "matchingPolicy": "0x18e8DC0F5AB80076Bc4A4F9007187A73EE38cd61",
-                "collection": "0x4539885B6c2222d79140044262dbD82E3e7238c7",
-                "tokenId": 10,
-                "amount": 0,
-                "paymentToken": "0x0000000000000000000000000000000000000000",
-                "price": {
-                    "type": "BigNumber",
-                    "hex": "0x0de0b6b3a7640000"
-                },
-                "listingTime": "0",
-                "expirationTime": "0",
-                "fees": [
-                    {
-                        "rate": 300,
-                        "recipient": "0x0017446d75054F370106976DE781ff60b53630Df"
-                    }
-                ],
-                "salt": 0,
-                "extraParams": "0x"
-            },
-            "v": 27,
-            "r": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "s": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "extraSignature": "0x",
-            "signatureVersion": 0,
-            "blockNumber": 21
-        }
+        "listingTime": "0",
+        "expirationTime": "0",
+        "fees": [
+            {
+                "rate": 300,
+                "recipient": "0x0017446d75054F370106976DE781ff60b53630Df"
+            }
+        ],
+        "salt": 0,
+        "extraParams": "0x"
     },
-    {
-        "sell": {
-            "order": {
-                "trader": "0x558395439377A3146aF3076B44B51E41504bD588",
-                "side": 1,
-                "matchingPolicy": "0x18e8DC0F5AB80076Bc4A4F9007187A73EE38cd61",
-                "collection": "0x4539885B6c2222d79140044262dbD82E3e7238c7",
-                "tokenId": 11,
-                "amount": 0,
-                "paymentToken": "0x0000000000000000000000000000000000000000",
-                "price": {
-                    "type": "BigNumber",
-                    "hex": "0x0de0b6b3a7640000"
-                },
-                "listingTime": "0",
-                "expirationTime": "0",
-                "fees": [
-                    {
-                        "rate": 300,
-                        "recipient": "0x0017446d75054F370106976DE781ff60b53630Df"
-                    }
-                ],
-                "salt": 0,
-                "extraParams": "0x"
-            },
-            "v": 27,
-            "r": "0xee38ad2a4784c44fb36ee0de2bbc34f24b2604e88c5ebd68b1243ba3a45b2799",
-            "s": "0x15f89b0ca4db5be0384070966984dac5723abef6238929f730e3889bafc0e870",
-            "extraSignature": "0x",
-            "signatureVersion": 0,
-            "blockNumber": 21
-        },
-        "buy": {
-            "order": {
-                "trader": "0x9616994B2d6BC4CeF41cCdDAe7C58172546017CE",
-                "side": 0,
-                "matchingPolicy": "0x18e8DC0F5AB80076Bc4A4F9007187A73EE38cd61",
-                "collection": "0x4539885B6c2222d79140044262dbD82E3e7238c7",
-                "tokenId": 11,
-                "amount": 0,
-                "paymentToken": "0x0000000000000000000000000000000000000000",
-                "price": {
-                    "type": "BigNumber",
-                    "hex": "0x0de0b6b3a7640000"
-                },
-                "listingTime": "0",
-                "expirationTime": "0",
-                "fees": [
-                    {
-                        "rate": 300,
-                        "recipient": "0x0017446d75054F370106976DE781ff60b53630Df"
-                    }
-                ],
-                "salt": 0,
-                "extraParams": "0x"
-            },
-            "v": 27,
-            "r": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "s": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "extraSignature": "0x",
-            "signatureVersion": 0,
-            "blockNumber": 21
-        }
-    }
-]
+    "v": 28,
+    "r": "0xc364008ea3c2cafc6dcd03ad057daacd2d03ae6b2004d49e5c9e1ad66e36df02",
+    "s": "0x57e66e7c1516f7e2d799a1d42d8bb7d9686339efdf959a8c36806fcd9de793fb",
+    "extraSignature": "0x",
+    "signatureVersion": 0,
+    "blockNumber": 8771604
+}

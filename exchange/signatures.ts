@@ -62,6 +62,7 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
 export async function sign(order: OrderParameters, account: Wallet, exchange: Contract): Promise<Signature> {
 
   const nonce = await exchange.nonces(order.trader);
+  
   const _struct_to_sign = structToSign({ ...order, nonce }, exchange.address);
   
   const _domain = _struct_to_sign.domain;
@@ -91,12 +92,6 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
   const nonce = await exchange.nonces(orders[0].trader);
   const _order = hashWithoutDomain({ ...orders[0], nonce });
   
-  // console.log('root::', root);
-  // console.log('_order::', _order);
-  // console.log('_order::', {...orders[0], nonce: nonce.toNumber(), price: orders[0].price.toString()});
-  // console.log('_order.getHexProof:: ', tree.getHexProof(_order));
-  // console.log('_order path::', ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(_order)]));
-
   const signature = await account
     ._signTypedData(
       {

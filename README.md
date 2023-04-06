@@ -81,6 +81,9 @@ todo:
 
 
 
+NonceIncremented
+
+
 
 
 1. UUPS 部署 
@@ -134,10 +137,10 @@ execution.test
 
 
 ### Delegate
-1. RevokeApproval: 禁用 (用户) 
+1. RevokeApproval: 禁用 (用户) 默认未禁用
 2. GrantApproval: 授权 (用户)
 
-3. ApproveContract: 授权合约 (管理员)
+3. ApproveContract: 授权合约 (管理员) 默认未授权
 4. DenyContract: 禁用合约 (管理员)
 
 ### Exchange

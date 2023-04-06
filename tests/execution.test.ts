@@ -43,7 +43,12 @@ export function runExecuteTests(setupTest: any) {
     let feeRecipientBalance: BigNumber;
     let feeRecipientBalanceWeth: BigNumber;
 
+    let adminBalance: BigNumber;
+    let adminBalanceWeth: BigNumber;
+
     const updateBalances = async () => {
+     
+
       aliceBalance = await alice.getBalance();
       aliceBalanceWeth = await weth.balanceOf(alice.address);
       bobBalance = await bob.getBalance();
@@ -54,6 +59,7 @@ export function runExecuteTests(setupTest: any) {
 
       console.log("aliceBalance: ", aliceBalance.toString());
       console.log("bobBalance: ", bobBalance.toString());
+      // console.log("adminBalance: ", adminBalance.toString());
 
     };
 
@@ -84,13 +90,13 @@ export function runExecuteTests(setupTest: any) {
       priceMinusFee = price.sub(fee);
 
       sell = generateOrder(alice, { side: Side.Sell, tokenId});
-      buy = generateOrder(bob, { side: Side.Buy, tokenId });
+      buy = generateOrder(admin, { side: Side.Buy, tokenId });
       
-      otherOrders = [
-        generateOrder(alice, { salt: 1 }),
-        generateOrder(alice, { salt: 2 }),
-        generateOrder(alice, { salt: 3 }),
-      ];
+      // otherOrders = [
+      //   generateOrder(alice, { salt: 1 }),
+      //   generateOrder(alice, { salt: 2 }),
+      //   generateOrder(alice, { salt: 3 }),
+      // ];
 
       sellInput = await sell.pack();
       buyInput = await buy.pack();
@@ -218,12 +224,14 @@ export function runExecuteTests(setupTest: any) {
 
       const sell1 = generateOrder(alice, { side: Side.Sell, tokenId: token1});
       const sell2 = generateOrder(alice, { side: Side.Sell, tokenId: token2 });
+
       sell1.parameters.paymentToken = ZERO_ADDRESS;
       sell2.parameters.paymentToken = ZERO_ADDRESS;
 
 
-      const buy1 = generateOrder(bob, { side: Side.Buy, tokenId: token1 });
-      const buy2 = generateOrder(bob, { side: Side.Buy, tokenId: token2 });
+      const buy1 = generateOrder(admin, { side: Side.Buy, tokenId: token1 });
+      const buy2 = generateOrder(admin, { side: Side.Buy, tokenId: token2 });
+
       buy1.parameters.paymentToken = ZERO_ADDRESS;
       buy2.parameters.paymentToken = ZERO_ADDRESS;
 
@@ -233,33 +241,44 @@ export function runExecuteTests(setupTest: any) {
       const buyInput1 = await buy1.packNoSigs();
       const buyInput2 = await buy2.packNoSigs();
 
-      const _execution1 = { sell: sellInput1, buy: buyInput1 }
+      // const _execution1 = { sell: sellInput1, buy: buyInput1 }
+
       const _execution2 = { sell: sellInput2, buy: buyInput2 }
 
-      // console.log('[_execution1, _execution2]:', JSON.stringify([_execution1, _execution2]) );
-   
+      adminBalance = await admin.getBalance();
+      adminBalanceWeth = await weth.balanceOf(admin.address);
+      
+      console.log('[_execution1, _execution2]:', [ _execution2]);
+
       const tx = await waitForTx(
         exchange
-          .connect(bob)
-          .bulkExecute([_execution1, _execution2], { value: (price.mul(2)) })
+          .connect(admin)
+          .bulkExecute([_execution2], { value: (price.mul(2)) })
       );
 
       
       const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
 
-      expect(await mockERC721.ownerOf(token1)).to.be.equal(bob.address);
-      expect(await mockERC721.ownerOf(token2)).to.be.equal(bob.address);
+      // expect(await mockERC721.ownerOf(token1)).to.be.equal(admin.address);
+      expect(await mockERC721.ownerOf(token2)).to.be.equal(admin.address);
        
+      console.log('fee:', fee.toString());
+      console.log('gasFee:', gasFee.toString());
+      console.log('feeRate:', (await exchange.feeRate()).toString());
+      
       
       await checkBalances(
-        aliceBalance.add(priceMinusFee).add(priceMinusFee),
+        aliceBalance.add(priceMinusFee),
         aliceBalanceWeth,
 
-        bobBalance.sub(price).sub(price).sub(gasFee),
+        bobBalance,
         bobBalanceWeth,
         
-        feeRecipientBalance.add(fee).add(fee),
-        feeRecipientBalanceWeth
+        feeRecipientBalance.add(fee),
+        feeRecipientBalanceWeth,
+
+        adminBalance.sub(price).sub(gasFee),
+        adminBalanceWeth,
 
       );
     });

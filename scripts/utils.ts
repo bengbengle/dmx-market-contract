@@ -1,15 +1,3 @@
-// import { getContract as _getContract, updateAddresses as _updateAddresses, getAddress as _getAddress} from './web3-utils';
-
-// const repo = 'DMXExchange';
-
-// const contracts = {
-//   DMXExchange: 'DMX_EXCHANGE',
-//   ExecutionDelegate: 'EXECUTION_DELEGATE',
-//   PolicyManager: 'POLICY_MANAGER',
-//   StandardPolicyERC721: 'STANDARD_POLICY_ERC721',
-//   MerkleVerifier: 'MERKLE_VERIFIER',
-// };
-
 import {
   getContract as _getContract,
   updateAddresses as _updateAddresses,
@@ -24,6 +12,11 @@ const contracts = {
   PolicyManager: 'POLICY_MANAGER',
   StandardPolicyERC721: 'STANDARD_POLICY_ERC721',
   MerkleVerifier: 'MERKLE_VERIFIER',
+
+  DMXExchangeProxy: 'DMXExchangeProxy',
+
+  MockERC721: 'MockERC721', 
+  MockERC20: 'MockERC20',
 };
 
 export function getAddress(contract: string, network: string): string {

@@ -11,6 +11,7 @@ import { resolve } from 'path';
 import { ethers } from "ethers"
 
 import './scripts/deploy'
+import './scripts/mock'
 import './scripts/execution'
 
 dotenvConfig({ path: resolve(__dirname, './.env') });

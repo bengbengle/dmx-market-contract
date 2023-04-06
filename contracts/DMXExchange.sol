@@ -79,7 +79,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     string public constant name = "DMX Exchange";
     string public constant version = "1.0";
     uint256 public constant INVERSE_BASIS_POINT = 10000;
-    uint256 private constant MAX_FEE_RATE = 500; // 250
+    uint256 private constant MAX_FEE_RATE = 250; // 250
 
     /* Variables */
     IExecutionDelegate public executionDelegate;
@@ -174,7 +174,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
             bytes memory data = abi.encodeWithSelector(this._execute.selector, executions[i].sell, executions[i].buy);
 
-            (bool success,) = address(this).delegatecall(data);
+            (bool success, ) = address(this).delegatecall(data);
             // if(!success) revert("BulkExecute faild ");
         }
 
@@ -579,6 +579,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         /* Call execution delegate. */
         if (assetType == AssetType.ERC721) {
             executionDelegate.transferERC721(collection, from, to, tokenId);
+            
         } else if (assetType == AssetType.ERC1155) {
             executionDelegate.transferERC1155(collection, from, to, tokenId, amount);
         }
