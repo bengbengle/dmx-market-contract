@@ -54,13 +54,7 @@ task('mint-nft', 'Mint mock nft').setAction(async (_, hre) => {
 
   const mockERC721 = await getContract(hre, 'MockERC721');
 
-  // await mockERC721.mint(alice.address, 3);
-  // await mockERC721.mint(alice.address, 4);
-  // await mockERC721.mint(alice.address, 5);
-  // await mockERC721.mint(alice.address, 6);
-  // await mockERC721.mint(alice.address, 7);
-  // await mockERC721.mint(alice.address, 8);
-
+   
   for(let i = 0; i < 10; i++) {
     await mockERC721.mint(alice.address, 3+i);
   }
@@ -109,6 +103,35 @@ task('set-weth', 'Deploy').setAction(async (_, hre) => {
   const weth = await getAddress('MockERC20', network);
 
   await exchange.setWethAddress(weth);
+
+
+
+});
+
+
+
+task('set-fee', 'Deploy').setAction(async (_, hre) => {
+
+  const { network } = getNetwork(hre);
+
+  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+
+  // 交易所 logic 合约
+  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+
+  console.log('exchangeImpl:', exchangeImpl.address);
+
+  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+
+  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
+
+  const weth = await getAddress('MockERC20', network);
+
+  await exchange.setFeeRate(250)
+
+  let feerate = await exchange.feeRate()
+  console.log('feerate:', feerate.toString()) 
+  console.log('set-fee ....')
 
 
 });

@@ -80,6 +80,7 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
 
     const _blockNumber = (await hre.ethers.provider.getBlock('latest')).number;
     const seller_orders = await sell.bulkSigs(otherOrders, _blockNumber);
+    
     const seller_orders_hashes = await sell.bulkhash(otherOrders, _blockNumber);
 
     console.log('seller_orders:', JSON.stringify(seller_orders, null, 4) );

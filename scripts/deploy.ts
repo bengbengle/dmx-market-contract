@@ -110,5 +110,4 @@ task('verify', 'verify').setAction(async (_, hre) => {
   await run(`verify:verify`, {address: _impl, constructorArguments: [] }); 
   await run(`verify:verify`, {address: _exchangeProxy, constructorArguments: [_impl, initialize] }); 
 });
-
  

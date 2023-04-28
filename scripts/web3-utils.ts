@@ -3,7 +3,7 @@ import { ContractReceipt, Signer } from 'ethers';
 import { getContractAddress } from 'ethers/lib/utils';
 import fs from 'fs';
 
-const DEPLOYMENTS_DIR = `../deployments`;
+const DEPLOYMENTS_DIR = `./deployments`;
 
 export function getRequiredEnv(key: string): string {
   const value = process.env[key];

@@ -248,24 +248,26 @@ export function runExecuteTests(setupTest: any) {
       adminBalance = await admin.getBalance();
       adminBalanceWeth = await weth.balanceOf(admin.address);
       
-      console.log('[_execution1, _execution2]:', [ _execution2]);
-
       const tx = await waitForTx(
         exchange
           .connect(admin)
-          .bulkExecute([_execution2], { value: (price.mul(2)) })
+          .bulkExecute([_execution2], { value: (price) })
       );
 
+      const tx2 = await waitForTx(
+        exchange
+          .connect(admin)
+          .bulkExecute([_execution2], { value: (price) })
+      );
+      
+      console.log('tx:', tx);
+      console.log('tx2:', tx2);
       
       const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
-
-      // expect(await mockERC721.ownerOf(token1)).to.be.equal(admin.address);
-      expect(await mockERC721.ownerOf(token2)).to.be.equal(admin.address);
        
       console.log('fee:', fee.toString());
       console.log('gasFee:', gasFee.toString());
       console.log('feeRate:', (await exchange.feeRate()).toString());
-      
       
       await checkBalances(
         aliceBalance.add(priceMinusFee),

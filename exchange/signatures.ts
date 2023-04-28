@@ -90,10 +90,9 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
   const { tree, root } = await getOrderTreeRoot(orders, exchange);
 
   const nonce = await exchange.nonces(orders[0].trader);
-
+  
   const order_first = hashWithoutDomain({ ...orders[0], nonce });
   let path_first = ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(order_first)]);
-
 
   let orders_path = []
   for(let i = 0; i < orders.length; i++) {
@@ -128,8 +127,6 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
     orders_path: orders_path,
   };
 }
-
-
 
 // 获取 订单列表的 MerkleProof
 async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {

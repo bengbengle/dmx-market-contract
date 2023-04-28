@@ -13,7 +13,8 @@
     "run_upgrade": "hardhat upgrade",
     "deploy:goerli": "hardhat deploy --network goerli",
     "verify:goerli": "hardhat verify --network goerli",
-    "go": "hardhat --network goerli"
+    "go": "hardhat --network goerli",
+    "setfee": "hardhat set-fee --network goerli"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",
