@@ -41,7 +41,7 @@ export async function deployFull(
     executionDelegate.address, // _executionDelegate
     policyManager.address, // _policyManager
     oracleAddress, // _oracle
-    5, // _blockRange
+    5,              // _blockRange
   ]);
 
   console.log('initialize:', initialize);

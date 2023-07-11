@@ -1,15 +1,20 @@
 import { simpleDeploy } from '@makerdao/hardhat-utils';
 import { expect } from 'chai';
-import { BigNumber, Contract, ethers, Wallet } from 'ethers';
+import { BigNumber, Contract, ethers, Signer, Wallet } from 'ethers';
 import hre from 'hardhat';
 
 import { eth, Order, Side } from './utils';
+import { providers } from 'ethers';
+import { MockERC20, MockERC721 } from '../typechain-types';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { FactoryOptions, HardhatRuntimeEnvironment } from 'hardhat/types';
+
 
 export async function deploy(
-  hre: any,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   calldata: any = [],
-  options: any = {},
+  options: FactoryOptions
 ) {
   const contractFactory = await hre.ethers.getContractFactory(name, options);
   const contract = await contractFactory.deploy(...calldata);
@@ -36,17 +41,18 @@ export type CheckBalances = (...args: any[]) => Promise<void>;
 export type GenerateOrder = (account: Wallet, overrides?: any) => Order;
 
 interface SetupTestResult {
-  admin: any;
-  alice: any;
-  bob: any;
-  thirdParty: any;
+  provider: ethers.providers.JsonRpcProvider;
+  admin: SignerWithAddress;
+  alice: SignerWithAddress;
+  bob: SignerWithAddress;
+  thirdParty: SignerWithAddress;
 
   exchange: Contract;
   executionDelegate: Contract;
   matchingPolicies: Record<string, Contract>;
   
   mockERC721: Contract;
-  weth: any;
+  weth: Contract;
 
   tokenId: number;
 
@@ -57,8 +63,9 @@ interface SetupTestResult {
 export type SetupTestFunction = (opts: SetupTestOpts) => Promise<SetupTestResult>;
 
 async function setupRegistry(
-  alice: any,
-  bob: any,
+
+  alice: SignerWithAddress ,
+  bob: SignerWithAddress,
   mockERC721: Contract,
   weth: Contract,
   executionDelegate: Contract,
@@ -78,14 +85,19 @@ async function setupRegistry(
   await weth
     .connect(bob)
     .approve(executionDelegate.address, eth('10000000000000'));
+
   await weth
     .connect(alice)
     .approve(executionDelegate.address, eth('1000000000000'));
+
 }
 
-async function setupMocks(alice: any, bob: any) {
-  const mockERC721 = (await simpleDeploy('MockERC721', [])) as any;
-  const weth = (await simpleDeploy('MockERC20', [])) as any;
+async function setupMocks(alice: SignerWithAddress, bob: SignerWithAddress) {
+
+  const mockERC721 = (await simpleDeploy('MockERC721', [])) as MockERC721;
+  const weth = (await simpleDeploy('MockERC20', [])) as MockERC20;
+  const usdt = (await simpleDeploy('MockERC20', [])) as MockERC20;
+  const usdc = (await simpleDeploy('MockERC20', [])) as MockERC20;
 
   const totalSupply = await mockERC721.totalSupply();
   const tokenId = totalSupply.toNumber() + 1;
@@ -95,12 +107,13 @@ async function setupMocks(alice: any, bob: any) {
   await weth.mint(bob.address, eth('1000'));
   await weth.mint(alice.address, eth('1000'));
 
-  return { weth, mockERC721, tokenId };
+  return { weth, usdc, usdt, mockERC721, tokenId };
 
 }
 
 export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts): Promise<SetupTestResult> {
 
+  console.log("setupTest provider: ", hre.ethers.provider);
   const [admin, alice, bob, thirdParty] = await hre.ethers.getSigners();
 
   const { weth, mockERC721, tokenId } = await setupMocks(alice, bob);
@@ -110,28 +123,28 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
   await setupRegistry(alice, bob, mockERC721, weth, executionDelegate, exchange);
 
   const checkBalances = async (
-    aliceEth: any,
-    aliceWeth: any,
+    aliceEth: BigNumber,
+    aliceWeth: BigNumber,
 
-    bobEth: any,
-    bobWeth: any,
+    bobEth: BigNumber,
+    bobWeth: BigNumber,
 
-    feeRecipientEth: any,
-    feeRecipientWeth: any,
+    feeRecipientEth: BigNumber,
+    feeRecipientWeth: BigNumber,
     
-    adminEth?: any,
-    adminWeth?: any,
+    adminEth?: BigNumber,
+    adminWeth?: BigNumber,
   ) => {
 
-    // expect(await alice.getBalance()).to.be.equal(aliceEth);
-    // expect(await bob.getBalance()).to.be.equal(bobEth);
+    expect(await alice.getBalance()).to.be.equal(aliceEth);
+    expect(await bob.getBalance()).to.be.equal(bobEth);
 
-    // expect(await weth.balanceOf(alice.address)).to.be.equal(aliceWeth);
-    // expect(await weth.balanceOf(bob.address)).to.be.equal(bobWeth);
+    expect(await weth.balanceOf(alice.address)).to.be.equal(aliceWeth);
+    expect(await weth.balanceOf(bob.address)).to.be.equal(bobWeth);
     
-    // expect(
-    //   await (admin.provider as ethers.providers.Provider).getBalance(thirdParty.address)
-    // ).to.be.equal(feeRecipientEth);
+    expect(
+      await admin.provider!.getBalance(thirdParty.address)
+    ).to.be.equal(feeRecipientEth);
     
     expect(
       
@@ -139,12 +152,13 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
 
     ).to.be.equal(feeRecipientWeth);
 
-    // if (adminEth) {
-    //   expect(await admin.getBalance()).to.be.equal(adminEth);
-    // }
-    // if (adminWeth) {
-    //   expect(await weth.balanceOf(admin.address)).to.be.equal(adminWeth);
-    // }
+    if (adminEth) {
+      expect(await admin.getBalance()).to.be.equal(adminEth);
+    }
+
+    if (adminWeth) {
+      expect(await weth.balanceOf(admin.address)).to.be.equal(adminWeth);
+    }
   };
 
   const generateOrder = (account: Wallet, overrides: any = {}): Order => {
@@ -177,6 +191,7 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
   };
 
   return {
+    provider: hre.ethers.provider,
     admin,
     alice,
     bob,

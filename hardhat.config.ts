@@ -61,7 +61,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
     },
     hardhat: {
-      chainId: 1,
+      chainId: 5,
       accounts: {
         count: 10,
         mnemonic: process.env.MNEMONIC,

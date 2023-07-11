@@ -326,9 +326,7 @@ export function runExecuteTests(setupTest: any) {
     });
     it('should not match with invalid signatures sell', async () => {
       sellInput = await sell.pack({ signer: bob });
-      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-        'Sell failed authorization',
-      );
+      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith('Sell failed authorization');
     });
     it('should not match with invalid signatures buy', async () => {
       buyInput = await buy.pack({ signer: alice });
@@ -402,9 +400,7 @@ export function runExecuteTests(setupTest: any) {
     });
     it('should not match with wrong order nonce sell', async () => {
       await exchange.connect(alice).incrementNonce();
-      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith(
-        'Sell failed authorization',
-      );
+      await expect(exchange.execute(sellInput, buyInput)).to.be.revertedWith('Sell failed authorization');
     });
     it('should not match with wrong order nonce buy', async () => {
       await exchange.connect(bob).incrementNonce();

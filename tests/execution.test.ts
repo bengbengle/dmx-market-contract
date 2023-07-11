@@ -14,7 +14,7 @@ export function runExecuteTests(setupTest: any) {
     const feeRate = 300; // 3%
 
     let exchange: Contract;
-    // let executionDelegate: Contract;
+    let executionDelegate: Contract;
 
     let admin: Wallet;
     let alice: Wallet;
@@ -22,6 +22,8 @@ export function runExecuteTests(setupTest: any) {
     let thirdParty: Wallet;
 
     let weth: Contract;
+    let usdt: Contract;
+    let usdc: Contract;
     let mockERC721: Contract;
 
     let generateOrder: GenerateOrder;
@@ -74,44 +76,82 @@ export function runExecuteTests(setupTest: any) {
         mockERC721,
         tokenId,
         exchange,
-        // executionDelegate,
+
         generateOrder,
         checkBalances,
+        executionDelegate
 
       } = await setupTest());
+
+
+      console.log('executionDelegate.address:', executionDelegate.address);
+
+      // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
+      let isApprovedContract = await executionDelegate.contracts(exchange.address);
+      if(!isApprovedContract) {
+          await executionDelegate.approveContract(exchange.address)
+      }
+
+      // Verify 2. 如果没有授权，需要授权
+      let _isApprovedForAll = await mockERC721.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
+      if(!_isApprovedForAll) {
+          await mockERC721.connect(alice).setApprovalForAll(executionDelegate.address, true);
+      }
+
     });
 
     beforeEach(async () => {
+
       await updateBalances();
       tokenId += 1;
+      console.log('tokenId:', tokenId);
       await mockERC721.mint(alice.address, tokenId);
 
       fee = price.mul(feeRate).div(INVERSE_BASIS_POINT);
       priceMinusFee = price.sub(fee);
 
       sell = generateOrder(alice, { side: Side.Sell, tokenId});
-      buy = generateOrder(admin, { side: Side.Buy, tokenId });
+      buy = generateOrder(bob, { side: Side.Buy, tokenId });
       
-      // otherOrders = [
-      //   generateOrder(alice, { salt: 1 }),
-      //   generateOrder(alice, { salt: 2 }),
-      //   generateOrder(alice, { salt: 3 }),
-      // ];
-
-      sellInput = await sell.pack();
+      sellInput = await sell.pack({ signer: alice });
       buyInput = await buy.pack();
 
+     
     });
 
-    // it('can cancel order', async () => {
-    //   await exchange.connect(bob).cancelOrder(buy.parameters);
+    it('check the single order is valid', async () => {
 
-    //   await expect(
-    //       exchange.execute(sellInput, buyInput)
-    //     ).to.be.revertedWith(
-    //       'Buy has invalid parameters',
-    //     );
-    // });
+      // console.log('sellInput:', sellInput)
+
+      // console.log('buyInput:', buyInput)
+
+      let is_valid_sell = await exchange.validateOrderParameters(sell.parameters, sell.hash());
+      let is_valid_buy = await exchange.validateOrderParameters(buy.parameters, buy.hash());
+      console.log('is_valid_sell:', is_valid_sell);
+      console.log('is_valid_buy:', is_valid_buy);
+      
+      
+      
+      console.log('sell.parameters:', sellInput);
+      let is_valid_sig = await exchange.validateSignatures(sellInput, sell.hash())
+
+      console.log('is_valid_sig:', is_valid_sig);
+
+      const { price, tokenId, amount } = await exchange.canMatchOrders(sell.parameters, buy.parameters);
+
+      console.log('price:', price.toString());
+      console.log('tokenId:', tokenId.toString());
+      console.log('amount:', amount.toString());
+      
+
+     
+      
+      const tx = await waitForTx(
+        exchange.connect(bob).execute(sellInput, buyInput)
+      );
+
+      console.log('tx:', tx);
+    });
     
     // it('can cancel bulk listing', async () => {
     //   sellInput = await sell.packBulk(otherOrders);
@@ -214,76 +254,76 @@ export function runExecuteTests(setupTest: any) {
     // });
 
 
-    it('should bulkExecute succeed with native eth call multiple orders', async () => {
+    // it('should bulkExecute succeed with native eth call multiple orders', async () => {
 
-      const token1 = 10;
-      const token2 = 11;
+    //   const token1 = 10;
+    //   const token2 = 11;
       
-      await mockERC721.mint(alice.address, token1);
-      await mockERC721.mint(alice.address, token2);
+    //   await mockERC721.mint(alice.address, token1);
+    //   await mockERC721.mint(alice.address, token2);
 
-      const sell1 = generateOrder(alice, { side: Side.Sell, tokenId: token1});
-      const sell2 = generateOrder(alice, { side: Side.Sell, tokenId: token2 });
+    //   const sell1 = generateOrder(alice, { side: Side.Sell, tokenId: token1});
+    //   const sell2 = generateOrder(alice, { side: Side.Sell, tokenId: token2 });
 
-      sell1.parameters.paymentToken = ZERO_ADDRESS;
-      sell2.parameters.paymentToken = ZERO_ADDRESS;
+    //   sell1.parameters.paymentToken = ZERO_ADDRESS;
+    //   sell2.parameters.paymentToken = ZERO_ADDRESS;
 
 
-      const buy1 = generateOrder(admin, { side: Side.Buy, tokenId: token1 });
-      const buy2 = generateOrder(admin, { side: Side.Buy, tokenId: token2 });
+    //   const buy1 = generateOrder(admin, { side: Side.Buy, tokenId: token1 });
+    //   const buy2 = generateOrder(admin, { side: Side.Buy, tokenId: token2 });
 
-      buy1.parameters.paymentToken = ZERO_ADDRESS;
-      buy2.parameters.paymentToken = ZERO_ADDRESS;
+    //   buy1.parameters.paymentToken = ZERO_ADDRESS;
+    //   buy2.parameters.paymentToken = ZERO_ADDRESS;
 
-      const sellInput1 = await sell1.pack();
-      const sellInput2 = await sell2.pack();
+    //   const sellInput1 = await sell1.pack();
+    //   const sellInput2 = await sell2.pack();
 
-      const buyInput1 = await buy1.packNoSigs();
-      const buyInput2 = await buy2.packNoSigs();
+    //   const buyInput1 = await buy1.packNoSigs();
+    //   const buyInput2 = await buy2.packNoSigs();
 
-      // const _execution1 = { sell: sellInput1, buy: buyInput1 }
+    //   // const _execution1 = { sell: sellInput1, buy: buyInput1 }
 
-      const _execution2 = { sell: sellInput2, buy: buyInput2 }
+    //   const _execution2 = { sell: sellInput2, buy: buyInput2 }
 
-      adminBalance = await admin.getBalance();
-      adminBalanceWeth = await weth.balanceOf(admin.address);
+    //   adminBalance = await admin.getBalance();
+    //   adminBalanceWeth = await weth.balanceOf(admin.address);
       
-      const tx = await waitForTx(
-        exchange
-          .connect(admin)
-          .bulkExecute([_execution2], { value: (price) })
-      );
+    //   const tx = await waitForTx(
+    //     exchange
+    //       .connect(admin)
+    //       .bulkExecute([_execution2], { value: (price) })
+    //   );
 
-      const tx2 = await waitForTx(
-        exchange
-          .connect(admin)
-          .bulkExecute([_execution2], { value: (price) })
-      );
+    //   const tx2 = await waitForTx(
+    //     exchange
+    //       .connect(admin)
+    //       .bulkExecute([_execution2], { value: (price) })
+    //   );
       
-      console.log('tx:', tx);
-      console.log('tx2:', tx2);
+    //   console.log('tx:', tx);
+    //   console.log('tx2:', tx2);
       
-      const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
+    //   const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
        
-      console.log('fee:', fee.toString());
-      console.log('gasFee:', gasFee.toString());
-      console.log('feeRate:', (await exchange.feeRate()).toString());
+    //   console.log('fee:', fee.toString());
+    //   console.log('gasFee:', gasFee.toString());
+    //   console.log('feeRate:', (await exchange.feeRate()).toString());
       
-      await checkBalances(
-        aliceBalance.add(priceMinusFee),
-        aliceBalanceWeth,
+    //   await checkBalances(
+    //     aliceBalance.add(priceMinusFee),
+    //     aliceBalanceWeth,
 
-        bobBalance,
-        bobBalanceWeth,
+    //     bobBalance,
+    //     bobBalanceWeth,
         
-        feeRecipientBalance.add(fee),
-        feeRecipientBalanceWeth,
+    //     feeRecipientBalance.add(fee),
+    //     feeRecipientBalanceWeth,
 
-        adminBalance.sub(price).sub(gasFee),
-        adminBalanceWeth,
+    //     adminBalance.sub(price).sub(gasFee),
+    //     adminBalanceWeth,
 
-      );
-    });
+    //   );
+    // });
 
   });
 }

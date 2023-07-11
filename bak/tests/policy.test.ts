@@ -35,10 +35,7 @@ export function runMatchingPolicyTests(setupTest: any) {
       describe('sell is maker', () => {
 
         it('should match', async () => {
-          const { price, tokenId, amount } = await exchange.canMatchOrders(
-            sell,
-            buy,
-          );
+          const { price, tokenId, amount } = await exchange.canMatchOrders(sell, buy);
           expect(price).to.equal(sell.price);
           expect(tokenId).to.equal(sell.tokenId);
           expect(amount).to.equal(1);

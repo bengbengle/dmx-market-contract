@@ -44,7 +44,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     }
 
     modifier setupExecution() {
-        require(!isInternal, "Unsafe call"); // 为了清晰起见，添加冗余的重入检查
+        require(!isInternal, "Unsafe call");
 
         remainingETH = msg.value;
         isInternal = true;
@@ -71,7 +71,6 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         emit Closed();
     }
 
-    // 需要 OZ UUPS 模块
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
 
@@ -114,17 +113,12 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     event NewExecutionDelegate(IExecutionDelegate executionDelegate);
     event NewPolicyManager(IPolicyManager policyManager);
     
-    // event NewBlockRange(uint256 blockRange);
     event NewWETH(address weth);
-
     event NewFeeRate(uint256 feeRate);
     event NewFeeRecipient(address feeRecipient);
 
     /* Constructor (for ERC1967) */
-    function initialize(
-        IExecutionDelegate _executionDelegate,
-        IPolicyManager _policyManager
-    ) public initializer {
+    function initialize(IExecutionDelegate _executionDelegate, IPolicyManager _policyManager) public initializer {
 
         __Ownable_init();
 
@@ -143,14 +137,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
     /* External Functions */
 
-    /**
-     * @dev 匹配两个订单，确保匹配的有效性，并执行所有关联的状态转换。 
-     * 通过合约全局锁防止重入
-     * @param sell Sell input
-     * @param buy Buy input
-     */
-    function execute(Input calldata sell, Input calldata buy)
-        external
+    function execute(Input calldata sell, Input calldata buy) external
         payable
         whenOpen
         setupExecution
@@ -174,8 +161,9 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
             bytes memory data = abi.encodeWithSelector(this._execute.selector, executions[i].sell, executions[i].buy);
 
-            (bool success, ) = address(this).delegatecall(data);
-            // if(!success) revert("BulkExecute faild ");
+            (bool success, bytes memory result) = address(this).delegatecall(data);
+
+            if(!success) revert(string(result));
         }
 
         _returnDust();
@@ -468,15 +456,13 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     function _executeFundsTransfer(
         address seller,
         address buyer,
-
         address paymentToken,
-        
-        Fee[] calldata fees, // 版税
+        Fee[] calldata fees,
         uint256 price
     ) internal {
       
         if (paymentToken == address(0)) {
-            // 买家才能使用  ETH,  seller 执行，也就是接收 bid 出售NFT 的时候, 只能使用 WETH 或者 BlurPool ETH
+
             require(msg.sender == buyer, "Cannot use ETH");  
             require(remainingETH >= price, "Insufficient value");
 
@@ -544,14 +530,10 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         }
 
         if (paymentToken == address(0)) {
-            /* Transfer funds in ETH. */
             payable(to).transfer(amount);
         
         } else if (paymentToken == weth) {
-
-            /* Transfer funds in WETH. */
             executionDelegate.transferERC20(weth, from, to, amount);
-
         } else {
             revert("Invalid payment token");
         }

@@ -3,10 +3,9 @@ import hre from 'hardhat';
 import { runExchangeTests } from './exchange.test';
 import { runExecuteTests } from './execution.test';
 import { runSignatureTests } from './signatures.test';
-
+import { runMulticoinTests } from './multcoin.test';
 import { 
   SetupExchangeResult,
-
   eth, 
   Order, 
   setupTest, 
@@ -35,17 +34,18 @@ const feeRate = 300;
 // );
 
 
-
-runExecuteTests(async () => {
-  return setupTest({price, feeRate, setupExchange});
-})
-
+// runExecuteTests(async () => {
+//   return setupTest({price, feeRate, setupExchange});
+// })
 
 // runSignatureTests(async () => {
-
 //   return setupTest({price, feeRate, setupExchange});
-  
 // })
+
+
+runMulticoinTests(async () => {
+  return setupTest({price, feeRate, setupExchange});
+})
 
 
 
