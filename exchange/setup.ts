@@ -4,7 +4,6 @@ import { BigNumber, Contract, ethers, Signer, Wallet } from 'ethers';
 import hre from 'hardhat';
 
 import { eth, Order, Side } from './utils';
-import { providers } from 'ethers';
 import { MockERC20, MockERC721 } from '../typechain-types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FactoryOptions, HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -92,7 +91,7 @@ async function setupRegistry(
 
 }
 
-async function setupMocks(alice: SignerWithAddress, bob: SignerWithAddress) {
+async function setupTokenMocks(alice: SignerWithAddress, bob: SignerWithAddress) {
 
   const mockERC721 = (await simpleDeploy('MockERC721', [])) as MockERC721;
   const weth = (await simpleDeploy('MockERC20', [])) as MockERC20;
@@ -116,7 +115,7 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
   console.log("setupTest provider: ", hre.ethers.provider);
   const [admin, alice, bob, thirdParty] = await hre.ethers.getSigners();
 
-  const { weth, mockERC721, tokenId } = await setupMocks(alice, bob);
+  const { weth, mockERC721, tokenId } = await setupTokenMocks(alice, bob);
   
   const { exchange, executionDelegate, matchingPolicies } = await setupExchange();
 
@@ -189,9 +188,11 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
       exchange,
     );
   };
-
+  
+  const provider = hre.ethers.provider;
+  
   return {
-    provider: hre.ethers.provider,
+    provider,
     admin,
     alice,
     bob,

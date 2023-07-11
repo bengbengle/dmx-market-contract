@@ -8,6 +8,7 @@
     "coverage": "hardhat coverage",
     "test": "hardhat test",
     "compile": "hardhat compile",
+    "build": "hardhat compile",
     "deploy": "yarn compile && hardhat deploy",
     "upgrade": "yarn compile && hardhat upgrade",
     "run_upgrade": "hardhat upgrade",

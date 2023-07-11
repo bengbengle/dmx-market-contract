@@ -26,7 +26,7 @@ export interface Fee {
   recipient: string;
 }
 
-export interface OrderParameters {
+export type OrderParameters = {
   trader: string;
   side: Side;
   matchingPolicy: string;

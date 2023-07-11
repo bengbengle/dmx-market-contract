@@ -1,12 +1,14 @@
 import { expect } from 'chai';
-import { BigNumber, Wallet } from 'ethers';
+import { BigNumber, Wallet, providers } from 'ethers';
 
 import type { GenerateOrder, SetupExchangeFunction } from '../exchange';
 
 import { eth, Order, setupTest, Side } from '../exchange';
 
+type JsonRpcProvider = providers.JsonRpcProvider;
+
 export function runExchangeTests(
-  setupExchange: SetupExchangeFunction,
+  setupExchange: any,
 ) {
   
   describe('Exchange', function () {
@@ -15,8 +17,9 @@ export function runExchangeTests(
 
     const price: BigNumber = eth('1');
 
-    let seller_alice: Wallet;
+    let seller_alice: any;
     let exchange: any;
+    let provider: JsonRpcProvider;
     let generateOrder: GenerateOrder;
 
     describe('validateOrderParameters', function () {
@@ -24,7 +27,7 @@ export function runExchangeTests(
       let orderHash: string;
 
       before(async () => {
-        ({ alice: seller_alice, exchange, generateOrder } = await setupTest({price, feeRate, setupExchange}));
+        ({ alice: seller_alice, exchange, generateOrder, provider} = await setupTest({price, feeRate, setupExchange}));
       });
 
       beforeEach(async () => {
