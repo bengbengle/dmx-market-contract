@@ -264,19 +264,11 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         (uint256 price, uint256 tokenId, uint256 amount, AssetType assetType) = _canMatchOrders(sell.order, buy.order);
 
-        _executeFundsTransfer(
-            sell.order.trader,
-            buy.order.trader,
-
-            sell.order.paymentToken,
-            sell.order.fees,
-            price
-        );
+        _executeFundsTransfer(sell.order.trader, buy.order.trader, sell.order.paymentToken, sell.order.fees, price);
 
         _executeTokenTransfer(
             sell.order.collection,
             sell.order.trader,
-            
             buy.order.trader,
             tokenId,
             amount,
@@ -293,14 +285,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         // 买方时间在前， 买方是 挂单者,  卖方是 吃单者
         address taker = sell.order.listingTime > buy.order.listingTime ? sell.order.trader : buy.order.trader;
 
-        emit OrdersMatched(
-            maker,
-            taker,
-            sell.order,
-            sellHash,
-            buy.order,
-            buyHash
-        );
+        emit OrdersMatched(maker, taker, sell.order, sellHash, buy.order, buyHash);
     }
 
     /**
@@ -535,7 +520,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         } else if (paymentToken == weth) {
             executionDelegate.transferERC20(weth, from, to, amount);
         } else {
-            revert("Invalid payment token");
+            executionDelegate.transferERC20(paymentToken, from, to, amount);
         }
     }
 

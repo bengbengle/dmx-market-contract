@@ -14,15 +14,15 @@ task('deploy-nft', 'Deploy mock nft').setAction(async (_, hre) => {
   console.log(`Deploying from: ${(await admin.getAddress()).toString()}`);
 
   // 1. MockERC721
-  const mockERC721 = (await deploy(hre, 'MockERC721')) as any;
+  const testNFT = (await deploy(hre, 'MockERC721')) as any;
 
-  const totalSupply = await mockERC721.totalSupply();
+  const totalSupply = await testNFT.totalSupply();
   const tokenId = totalSupply.toNumber() + 1;
 
-  await mockERC721.mint(alice.address, tokenId);
-  await mockERC721.mint(bob.address, tokenId + 1);
+  await testNFT.mint(alice.address, tokenId);
+  await testNFT.mint(bob.address, tokenId + 1);
 
-  console.log('mockERC721:', mockERC721.address);
+  console.log('testNFT:', testNFT.address);
   console.log('tokenId:', tokenId);
 
   updateAddresses(network);
@@ -52,20 +52,20 @@ task('mint-nft', 'Mint mock nft').setAction(async (_, hre) => {
   const [ admin, alice, bob] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
 
-  const mockERC721 = await getContract(hre, 'MockERC721');
+  const testNFT = await getContract(hre, 'MockERC721');
 
    
   for(let i = 0; i < 10; i++) {
-    await mockERC721.mint(alice.address, 3+i);
+    await testNFT.mint(alice.address, 3+i);
   }
 
-  const totalSupply = await mockERC721.totalSupply();
+  const totalSupply = await testNFT.totalSupply();
   console.log('totalSupply:', totalSupply.toString());
 
-  const balance = await mockERC721.balanceOf(alice.address);
+  const balance = await testNFT.balanceOf(alice.address);
   console.log('balance:', balance.toString());
 
-  // console.log('mockERC721Address:', mockERC721.address);
+  // console.log('testNFTAddress:', testNFT.address);
 
 });
 
@@ -81,7 +81,7 @@ task('mint-weth', 'Mint mock nft').setAction(async (_, hre) => {
 
   const totalSupply = await mockERC20.totalSupply();
   console.log('totalSupply:', totalSupply.toString());
-  console.log('mockERC721Address:', mockERC20.address);
+  console.log('testNFTAddress:', mockERC20.address);
 
 });
 

@@ -101,13 +101,10 @@ export class Order {
   
   // 只有 卖方 才能挂 Bulk 单 
   async packBulk(otherOrders: Order[]) {
+
     const orders = [...otherOrders.map((_) => _.parameters)];
 
-    const { path, r, v, s, orders_path } = await signBulk(
-      orders,
-      this.user,
-      this.exchange,
-    );
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
     
     return {
       order: orders[0],
@@ -145,6 +142,7 @@ export class Order {
 
     return seller_sigs;
   }
+
   async bulkhash(otherOrders: Order[], blockNumber: number = 0) {
     const nonce = await this.exchange.nonces(this.parameters.trader);
     const orders = [...otherOrders.map((_) => _.parameters)];
@@ -180,14 +178,11 @@ export class Order {
           signatureVersion: SignatureVersion.Bulk,
           blockNumber,
       }
-
       seller_sigs.push(sig);
     }
 
     return seller_sigs;
   }
-
- 
 }
 
 export interface Field {

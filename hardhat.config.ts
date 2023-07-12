@@ -85,12 +85,12 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  paths: {
-    artifacts: './artifacts',
-    cache: './cache',
-    sources: './contracts',
-    tests: './tests',
-  },
+  // paths: {
+  //   artifacts: './artifacts',
+  //   cache: './cache',
+  //   sources: './contracts',
+  //   tests: './tests',
+  // },
   gasReporter: {
     enabled: false,
     currency: "USD",

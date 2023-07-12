@@ -39,9 +39,12 @@
 
 
 
+
+
+
 ### 问题
 
-1. 2种 合约升级模式
+1. 2种 合约升级模式  (√)
 
     UUPSUpgradeable
 
@@ -64,8 +67,6 @@
 
     发合约 出接口 4.5
 
- 
-
 todo:
 
 1. 部署 2  
@@ -83,9 +84,6 @@ todo:
 
 NonceIncremented
 
-
-
-
 1. UUPS 部署 
     升级
 
@@ -102,14 +100,11 @@ NonceIncremented
     * 调用合约 执行 
     * 验证买卖 订单的策略 是否匹配
 
-
 5. 策略 匹配的 验证测试 
 
 6. 订单执行 测试
 
     execution test
-
-
 
 
 
@@ -131,10 +126,6 @@ execution.test
 
 
 ### 事件
-
-
-
-
 
 ### Delegate
 1. RevokeApproval: 禁用 (用户) 默认未禁用
@@ -158,4 +149,37 @@ execution.test
 
 
 
+### 多币种测试
 
+1. 领取代币 USDT, USDC
+    
+    * 领取代币的链接
+
+2. 铸造 NFT 
+    
+    * 设置铸造规则，支持 USDT 铸造
+        TODO:
+
+    * 用户使用 USDT 铸造 NFT
+        TODO: 前端需 支持 USDT 购买
+
+3. 交易 NFT
+    
+    * 项目方设置 支持的币种 （USDT）
+        TODO: 
+    
+    * 卖方 挂单时候 指定 USDT 10 U
+        TODO:
+    
+    * 买方 花费 10U 购买 NFT
+        TODO: 
+    
+
+USDT Workflow:
+    
+    mint 10 usdt --> alice 
+    mint 10 NFT --> alice 
+
+    check alice's account nft isApprove for delegate contract  
+    check alice 
+     

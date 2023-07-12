@@ -29,13 +29,13 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
         const executionDelegate = await getContract(hre, 'ExecutionDelegate');
         const standardPolicyERC721 = await getContract(hre, 'StandardPolicyERC721');
     
-        const mockERC721 = await getContract(hre, 'MockERC721');
+        const testNFT = await getContract(hre, 'MockERC721');
         const mockERC20 = await getContract(hre, 'MockERC20');
     
-        return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, mockERC721, mockERC20, };
+        return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT, mockERC20, };
     }
 
-    const { exchange, executionDelegate, matchingPolicies, mockERC721, mockERC20 } = await getSetupExchange(hre);
+    const { exchange, executionDelegate, matchingPolicies, testNFT, mockERC20 } = await getSetupExchange(hre);
 
     const generateOrder = (account: any, overrides: any = {}): Order => {
 
@@ -43,7 +43,7 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
             trader: account.address,
             side: Side.Sell,
             matchingPolicy: matchingPolicies.standardPolicyERC721.address,
-            collection: mockERC721.address,
+            collection: testNFT.address,
             tokenId: 1,
             amount: 0,
             paymentToken: ZERO_ADDRESS,
@@ -90,8 +90,8 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
     
     let buyer_orders = await buy.bulkNoSigs(otherOrders, seller_orders, _blockNumber);
 
-    console.log('alice mockERC721 balance:', (await mockERC721.balanceOf(alice.address)).toString());
-    console.log('admin mockERC721 balance:', (await mockERC721.balanceOf(admin.address)).toString());
+    console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
+    console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
 
     console.log('alice eth balance:', (await alice.getBalance()).toString());
     console.log('admin eth balance:', (await admin.getBalance()).toString());
@@ -110,8 +110,8 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
     //         .connect(admin)
     //         .execute(seller_orders[0], buyer_orders[0], { value: price.mul(2), gasLimit: 3738000 })
     // )
-    console.log('alice mockERC721 balance:', (await mockERC721.balanceOf(alice.address)).toString());
-    console.log('admin mockERC721 balance:', (await mockERC721.balanceOf(admin.address)).toString());
+    console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
+    console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
     console.log('alice eth balance:', (await alice.getBalance()).toString());
     console.log('admin eth balance:', (await admin.getBalance()).toString());
    

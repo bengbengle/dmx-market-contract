@@ -1,24 +1,21 @@
 import { task } from 'hardhat/config';
-// import { run } from 'hardhat';
 import { Contract } from 'ethers';
 import { getAddress, getContract, updateAddresses } from './utils';
 import { deploy, getAddressEnv, getNetwork, waitForTx } from './web3-utils';
+import { SetupExchangeResult } from '../exchange';
+import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typechain-types';
  
 
-const DMXExchange_ContractName = 'TestDMXExchange'; //'DMXExchange';
+const DMXExchange_ContractName = 'DMXExchange'; //'DMXExchange';
 const ERC1967Proxy_ContractName = 'ERC1967Proxy';
 
-export async function deployFull(hre: any, exchangeName: string): Promise<{
-  exchange: Contract;
-  executionDelegate: Contract;
-  matchingPolicies: Record<string, Contract>;
-}> {
+export async function deployFull(hre: any, exchangeName: string = DMXExchange_ContractName): Promise<SetupExchangeResult> {
   // 1. 代理合约
-  const executionDelegate = await deploy(hre, 'ExecutionDelegate');
+  const executionDelegate = await deploy(hre, 'ExecutionDelegate') as ExecutionDelegate;
   // 2. 策略管理
-  const policyManager = await deploy(hre, 'PolicyManager');
+  const policyManager = await deploy(hre, 'PolicyManager') as PolicyManager;
   // 3. ERC721 策略
-  const standardPolicyERC721 = await deploy(hre, 'StandardPolicyERC721');
+  const standardPolicyERC721 = await deploy(hre, 'StandardPolicyERC721') as StandardPolicyERC721;
 
   await waitForTx(policyManager.addPolicy(standardPolicyERC721.address));
   // 4. merkle 校验
@@ -41,6 +38,9 @@ export async function deployFull(hre: any, exchangeName: string): Promise<{
   return { exchange, executionDelegate, matchingPolicies: {standardPolicyERC721} };
 }
 
+export async function deployFullTest(hre: any): Promise<SetupExchangeResult> {
+  return deployFull(hre, DMXExchange_ContractName);
+}
 
 task('deploy', 'Deploy').setAction(async (_, hre) => {
   const [ admin ] = await hre.ethers.getSigners();
@@ -53,7 +53,6 @@ task('deploy', 'Deploy').setAction(async (_, hre) => {
 
   updateAddresses(network);
 });
-
 
 task('upgrade', 'Upgrade').setAction(async (_, hre) => {
   const [admin] = await hre.ethers.getSigners();

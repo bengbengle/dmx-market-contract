@@ -29,13 +29,13 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
         const executionDelegate = await getContract(hre, 'ExecutionDelegate');
         const standardPolicyERC721 = await getContract(hre, 'StandardPolicyERC721');
     
-        const mockERC721 = await getContract(hre, 'MockERC721');
+        const testNFT = await getContract(hre, 'MockERC721');
         const mockERC20 = await getContract(hre, 'MockERC20');
     
-        return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, mockERC721, mockERC20, };
+        return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT, mockERC20, };
     }
 
-    const { exchange, executionDelegate, matchingPolicies, mockERC721, mockERC20 } = await getSetupExchange(hre);
+    const { exchange, executionDelegate, matchingPolicies, testNFT, mockERC20 } = await getSetupExchange(hre);
 
     // console.log('exchange.executionDelegate :', await exchange.executionDelegate() );
     // console.log('exchange.weth :', await exchange.weth() );
@@ -50,7 +50,7 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
                 trader: account.address,
                 side: Side.Buy,
                 matchingPolicy: matchingPolicies.standardPolicyERC721.address,
-                collection: mockERC721.address,
+                collection: testNFT.address,
                 tokenId: 1,
                 amount: 0,
                 paymentToken: ZERO_ADDRESS,
@@ -83,12 +83,15 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
     let isApprovedContract = await executionDelegate.contracts(exchange.address);
     if(!isApprovedContract) {
         await executionDelegate.approveContract(exchange.address)
+        isApprovedContract = await executionDelegate.contracts(exchange.address);
+
+        
     }
 
     // Verify 2. 如果没有授权，需要授权
-    let _isApprovedForAll = await mockERC721.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
+    let _isApprovedForAll = await testNFT.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
     if(!_isApprovedForAll) {
-        await mockERC721.connect(alice).setApprovalForAll(executionDelegate.address, true);
+        await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
     }
 
     // Verify 3.
@@ -96,7 +99,7 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
     await executionDelegate.connect(alice).grantApproval();
     
     // Verify 4.
-    let _owner = await mockERC721.ownerOf(token1);
+    let _owner = await testNFT.ownerOf(token1);
     console.log('alice is owner? :', _owner == alice.address);
     // if(_owner != alice.address) {
     //     console.error('the nft"s owner is not alice');
@@ -133,31 +136,25 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
 
     // const _transaction = await exchange.connect(admin)
     //     .execute(sellInput1, buyInput1, { value: price, gasLimit: 4500000  });
-
-    // exchange
-    //         .connect(admin)
-    //         .execute(sellInput1, buyInput1, { value: price, gasLimit: 3e7  })
+    // exchange.connect(admin).execute(sellInput1, buyInput1, { value: price, gasLimit: 3e7  })
     // const tx = await waitForTx(_transaction);
 
-    console.log('alice mockERC721 balance:', (await mockERC721.balanceOf(alice.address)).toString());
-    console.log('admin mockERC721 balance:', (await mockERC721.balanceOf(admin.address)).toString());
+    console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
+    console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
 
     console.log('alice eth balance:', (await alice.getBalance()).toString());
     console.log('admin eth balance:', (await admin.getBalance()).toString());
 
     // await waitForTx(
-    //     await exchange
-    //         .connect(admin)
-    //         .bulkExecute([_execution1], { value: price })
+    //     await exchange.connect(admin).bulkExecute([_execution1], { value: price })
     // )
 
     const _transaction = await exchange.connect(admin)
         .execute(sellInput1, buyInput1, { value: price.mul(2) });
     const tx = await waitForTx(_transaction);
 
-
-    console.log('alice mockERC721 balance:', (await mockERC721.balanceOf(alice.address)).toString());
-    console.log('admin mockERC721 balance:', (await mockERC721.balanceOf(admin.address)).toString());
+    console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
+    console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
     console.log('alice eth balance:', (await alice.getBalance()).toString());
     console.log('admin eth balance:', (await admin.getBalance()).toString());
 

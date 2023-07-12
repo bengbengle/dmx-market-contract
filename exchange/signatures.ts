@@ -45,7 +45,6 @@ const eip712Order = {
 
 
 function structToSign(order: OrderWithNonce, exchange: string): TypedData {
-
   return {
     name: eip712Order.name,
     fields: eip712Order.fields,
@@ -86,7 +85,7 @@ export async function sign(order: OrderParameters, account: Wallet, exchange: Co
 
 export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract) {
 
-  const { tree, root } = await getOrderTreeRoot(orders, exchange);
+  const { tree, root } = await _treeRoot(orders, exchange);
 
   const nonce = await exchange.nonces(orders[0].trader);
   
@@ -128,19 +127,18 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
 }
 
 // 获取 订单列表的 MerkleProof
-async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
+async function _treeRoot(orders: OrderParameters[], exchange: Contract) {
   const leaves = await Promise.all(
     orders.map(async (order) => {
       const nonce = await exchange.nonces(order.trader);
       return hashWithoutDomain({ ...order, nonce });
     })
   )
-
-  return getMerkleProof(leaves);
+  return _merkleProof(leaves);
 }
 
 // 构建 MerkleTree, 然后返回 root 
-function getMerkleProof(leaves: string[]) {
+function _merkleProof(leaves: string[]) {
   const tree = new MerkleTree(leaves, ethers.utils.keccak256, { sort: true });
   const root = tree.getHexRoot();
   return { root, tree };

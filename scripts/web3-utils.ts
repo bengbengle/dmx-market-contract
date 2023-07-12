@@ -2,6 +2,7 @@ import assert from 'assert';
 import { ContractReceipt, Signer } from 'ethers';
 import { getContractAddress } from 'ethers/lib/utils';
 import fs from 'fs';
+import { FactoryOptions, HardhatRuntimeEnvironment } from 'hardhat/types';
 
 const DEPLOYMENTS_DIR = `./deployments`;
 
@@ -38,10 +39,10 @@ export function getAddress(
 }
 
 export async function getContractAt(
-  hre: any,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   address: string,
-  options: any = {},
+  options: FactoryOptions = {},
 ) {
   console.log(`Using existing contract: ${name} at: ${address}`);
   const contractFactory = await hre.ethers.getContractFactory(name, options);
@@ -49,11 +50,11 @@ export async function getContractAt(
 }
 
 export async function getContract(
-  hre: any,
+  hre: HardhatRuntimeEnvironment,
   repo: string,
   name: string,
   contractVariables: any,
-  options: any = {},
+  options: FactoryOptions = {},
 ) {
   const { network } = getNetwork(hre);
   const address = await getAddress(repo, name, contractVariables, network);
@@ -112,21 +113,18 @@ export function asDec(address: string): string {
 }
 
 export async function deploy(
-  hre: any,
+  hre: HardhatRuntimeEnvironment,
   name: string,
   calldata: any = [],
-
-  options: any = {},
+  options: FactoryOptions = {},
   saveName = '',
 ) {
-  console.log(`Deploying: ${name}...`);
+  // console.log(`Deploying: ${name}...`);
   const contractFactory = await hre.ethers.getContractFactory(name, options);
   const contract = await contractFactory.deploy(...calldata);
-
+  // console.log('hre.network.name:', hre.network.name, hre.network.config.chainId);
   save(saveName || name, contract, hre.network.name);
-
-  console.log(`Deployed: ${name} to: ${contract.address}`);
-
+  // console.log(`Deployed: ${name} to: ${contract.address}`);
   await contract.deployed();
   return contract;
 }
@@ -142,6 +140,7 @@ export function updateAddresses(
   contractVariables: Record<string, string>,
   network: string,
 ) {
+
   const contractAddresses: Record<string, string> = {};
   contracts.forEach((contract) => {
     const variable = contractVariables[contract];
@@ -154,6 +153,7 @@ export function updateAddresses(
       fs.readFileSync(`${DEPLOYMENTS_DIR}/${network}.json`).toString(),
     );
   }
+
   addresses[repo] = {
     ...addresses[repo],
     ...contractAddresses,
@@ -166,5 +166,4 @@ export function updateAddresses(
   });
 
   fs.writeFileSync(`${DEPLOYMENTS_DIR}/${network}.json`, JSON.stringify(addresses, null, 4) );
-
 }
