@@ -133,26 +133,18 @@ export function runMulticoinTests(init: any) {
 
     it('check the single order is valid', async () => {
 
-
-      // let is_valid_sell = await exchange.validateOrderParameters(sell.parameters, sell.hash());
-      // let is_valid_buy = await exchange.validateOrderParameters(buy.parameters, buy.hash());
- 
       const { price, tokenId, amount } = await exchange.canMatchOrders(sell.parameters, buy.parameters);
 
       console.log('price:', price.toString());
       console.log('tokenId:', tokenId.toString());
       console.log('amount:', amount.toString());
-      
-
-     
-      
+       
       const tx = await waitForTx(
         exchange.connect(bob).execute(sellInput, buyInput)
       );
 
       console.log('tx:', tx);
+
     });
-    
-   
   });
 }

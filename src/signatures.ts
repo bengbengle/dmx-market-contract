@@ -1,8 +1,7 @@
 import { Contract, ethers, Wallet, Signature } from 'ethers';
 import { MerkleTree } from 'merkletreejs';
-import { OrderParameters, OrderWithNonce, TypedData } from './utils';
-
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
+import { OrderParameters, OrderWithNonce, TypedData } from './utils';
 
 const { 
   eip712Hash, 
@@ -83,6 +82,7 @@ export async function sign(order: OrderParameters, account: Wallet, exchange: Co
 
   return signature;
 }
+
 
 export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract) {
 

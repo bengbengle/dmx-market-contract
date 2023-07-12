@@ -3,7 +3,8 @@ import { Wallet, Contract } from 'ethers';
 
 import type { GenerateOrder } from '../exchange';
 import { eth, OrderParameters } from '../exchange';
-import { Side, ZERO_ADDRESS } from '../exchange/utils';
+import { Order, Side, ZERO_ADDRESS } from '../exchange/utils';
+
 
 export function runMatchingPolicyTests(setupTest: any) {
   return async () => {

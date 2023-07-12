@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 import { getAddress, getContract } from './utils';
 import { getNetwork, waitForTx } from './web3-utils';
 
-import { eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils_test';
+import { eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 
 
 task("packbulk", "can sing packBulk sell order and execute").setAction(async (_, hre) => {

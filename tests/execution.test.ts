@@ -138,7 +138,6 @@ export function runExecuteTests(setupTest: any) {
         exchange.connect(bob).execute(sellInput, buyInput)
       );
 
-      console.log('tx:', tx);
     });
     
     // it('can cancel bulk listing', async () => {
@@ -287,9 +286,6 @@ export function runExecuteTests(setupTest: any) {
     //       .connect(admin)
     //       .bulkExecute([_execution2], { value: (price) })
     //   );
-      
-    //   console.log('tx:', tx);
-    //   console.log('tx2:', tx2);
       
     //   const gasFee = tx.gasUsed.mul(tx.effectiveGasPrice);
        

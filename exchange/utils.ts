@@ -1,8 +1,7 @@
 import { expect } from 'chai';
-import { BigNumber, ContractReceipt, Signer } from 'ethers';
+import { BigNumber, ContractReceipt, Signer, providers } from 'ethers';
 import { parseEther } from 'ethers/lib/utils';
-import { ethers } from 'hardhat';
-import { hashWithoutDomain, hash } from './signatures';
+import { hashWithoutDomain, hash, hashWithDomain } from './signatures';
 
 import { sign, signBulk } from './signatures';
 
@@ -26,7 +25,7 @@ export interface Fee {
   recipient: string;
 }
 
-export type OrderParameters = {
+export interface OrderParameters {
   trader: string;
   side: Side;
   matchingPolicy: string;
@@ -68,17 +67,14 @@ export class Order {
 
   async hashToSign(): Promise<string> {
     const nonce = await this.exchange.nonces(this.parameters.trader);
-    return hash({ ...this.parameters, nonce }, this.exchange);
+    return hashWithDomain({ ...this.parameters, nonce }, this.exchange);
   }
 
   async pack(
-    options: { signer?: Signer; oracle?: Signer; blockNumber?: number } = {},
+    options: { signer?: Signer; oracle?: Signer; } = {},
   ) {
-    const signature = await sign(
-      this.parameters,
-      options.signer || this.user,
-      this.exchange,
-    );
+    
+    const signature = await sign(this.parameters, options.signer || this.user, this.exchange);
     const {v, r, s} = signature;
     return {
       order: this.parameters,
@@ -87,7 +83,7 @@ export class Order {
       s,
       extraSignature: '0x',
       signatureVersion: SignatureVersion.Single,
-      blockNumber: (await ethers.provider.getBlock('latest')).number,
+      blockNumber: 0
     };
   }
 
@@ -99,28 +95,99 @@ export class Order {
       s: ZERO_BYTES32,
       extraSignature: '0x',
       signatureVersion: SignatureVersion.Single,
-      blockNumber: (await ethers.provider.getBlock('latest')).number
+      blockNumber: 0
     };
   }
   
   // 只有 卖方 才能挂 Bulk 单 
   async packBulk(otherOrders: Order[]) {
-    const { path, r, v, s } = await signBulk(
-      [this.parameters, ...otherOrders.map((_) => _.parameters)],
+    const orders = [...otherOrders.map((_) => _.parameters)];
+
+    const { path, r, v, s, orders_path } = await signBulk(
+      orders,
       this.user,
       this.exchange,
     );
     
     return {
-      order: this.parameters,
+      order: orders[0],
       r,
       v,
       s,
       extraSignature: path,
       signatureVersion: SignatureVersion.Bulk,
-      blockNumber: (await ethers.provider.getBlock('latest')).number,
+      blockNumber: 0,
+      // orders_path
     };
   }
+
+  async bulkSigs(otherOrders: Order[], blockNumber: number = 0) {
+
+    const orders = [...otherOrders.map((_) => _.parameters)];
+
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
+    
+    let seller_sigs = [];
+
+    for(let i = 0; i < orders.length; i++) {
+      let sig = {
+          order: orders[i],
+          r,
+          v,
+          s,
+          extraSignature: orders_path[i],
+          signatureVersion: SignatureVersion.Bulk,
+          blockNumber,
+      }
+
+      seller_sigs.push(sig);
+    }
+
+    return seller_sigs;
+  }
+  async bulkhash(otherOrders: Order[], blockNumber: number = 0) {
+    const nonce = await this.exchange.nonces(this.parameters.trader);
+    const orders = [...otherOrders.map((_) => _.parameters)];
+    let hashes = [];
+    for(let i = 0; i < orders.length; i++) {
+      hashes.push(hashWithoutDomain({ ...orders[i], nonce }));
+    }
+    return hashes;
+  }
+
+  async bulkNoSigs(otherOrders: Order[], _bulkSigs: any, blockNumber: number = 0) {
+
+    const orders = [...otherOrders.map((_) => {
+      
+      return {
+        ..._.parameters,
+        trader: this.user.address,
+        side: Side.Buy,
+      }
+    })];
+
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
+    
+    let seller_sigs = [];
+
+    for(let i = 0; i < orders.length; i++) {
+      let sig = {
+          order: orders[i],
+          v: 27,
+          r: ZERO_BYTES32,
+          s: ZERO_BYTES32,
+          extraSignature: _bulkSigs[i].extraSignature,
+          signatureVersion: SignatureVersion.Bulk,
+          blockNumber,
+      }
+
+      seller_sigs.push(sig);
+    }
+
+    return seller_sigs;
+  }
+
+ 
 }
 
 export interface Field {

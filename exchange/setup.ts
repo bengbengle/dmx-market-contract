@@ -22,7 +22,7 @@ export async function deploy(
   return contract;
 }
 
-export interface SetupExchangeResult {
+export type SetupExchangeResult = {
   exchange: Contract;
   executionDelegate: Contract;
   matchingPolicies: Record<string, Contract>;
@@ -30,7 +30,7 @@ export interface SetupExchangeResult {
 
 export type SetupExchangeFunction = () => Promise<SetupExchangeResult>;
 
-interface SetupTestOpts {
+type SetupTestOpts = {
   price: BigNumber;
   feeRate: number;
   setupExchange: SetupExchangeFunction;
@@ -62,36 +62,25 @@ interface SetupTestResult {
 export type SetupTestFunction = (opts: SetupTestOpts) => Promise<SetupTestResult>;
 
 async function setupRegistry(
-
   alice: SignerWithAddress ,
   bob: SignerWithAddress,
   mockERC721: Contract,
-  weth: Contract,
+  coin: Contract,
   executionDelegate: Contract,
   exchange: Contract
-
 ) {
-  await exchange.setWethAddress(weth.address);
 
-  await mockERC721
-    .connect(alice)
-    .setApprovalForAll(executionDelegate.address, true);
+  await exchange.setWethAddress(coin.address);
   
-    await mockERC721
-    .connect(bob)
-    .setApprovalForAll(executionDelegate.address, true);
+  await mockERC721.connect(alice).setApprovalForAll(executionDelegate.address, true);
+  await mockERC721.connect(bob).setApprovalForAll(executionDelegate.address, true);
 
-  await weth
-    .connect(bob)
-    .approve(executionDelegate.address, eth('10000000000000'));
-
-  await weth
-    .connect(alice)
-    .approve(executionDelegate.address, eth('1000000000000'));
+  await coin.connect(bob).approve(executionDelegate.address, eth('10000000000000'));
+  await coin.connect(alice).approve(executionDelegate.address, eth('1000000000000'));
 
 }
 
-async function setupTokenMocks(alice: SignerWithAddress, bob: SignerWithAddress) {
+async function _mockTokens(alice: SignerWithAddress, bob: SignerWithAddress) {
 
   const mockERC721 = (await simpleDeploy('MockERC721', [])) as MockERC721;
   const weth = (await simpleDeploy('MockERC20', [])) as MockERC20;
@@ -114,11 +103,8 @@ export async function setupTest({price, feeRate, setupExchange}: SetupTestOpts):
 
   console.log("setupTest provider: ", hre.ethers.provider);
   const [admin, alice, bob, thirdParty] = await hre.ethers.getSigners();
-
-  const { weth, mockERC721, tokenId } = await setupTokenMocks(alice, bob);
-  
+  const { weth, mockERC721, tokenId } = await _mockTokens(alice, bob);
   const { exchange, executionDelegate, matchingPolicies } = await setupExchange();
-
   await setupRegistry(alice, bob, mockERC721, weth, executionDelegate, exchange);
 
   const checkBalances = async (
