@@ -73,7 +73,6 @@ task('upgrade', 'Upgrade').setAction(async (_, hre) => {
 
   const initialize = initializeInterface.encodeFunctionData('initialize', [executionDelegateAddress, policyManager]);
 
-
   const _exchangeProxy = await getAddress('DMXExchangeProxy', network);
   const exchange = new hre.ethers.Contract(_exchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
   
