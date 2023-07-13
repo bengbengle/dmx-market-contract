@@ -167,16 +167,14 @@ export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTe
     adminWeth?: BigNumber,
 
   ) => {
-
+    
     expect(await alice.getBalance()).to.be.equal(aliceEth);
     expect(await bob.getBalance()).to.be.equal(bobEth);
 
     expect(await weth.balanceOf(alice.address)).to.be.equal(aliceWeth);
     expect(await weth.balanceOf(bob.address)).to.be.equal(bobWeth);
 
-    expect(
-      await admin.provider!.getBalance(thirdParty.address)
-    ).to.be.equal(feeRecipientEth);
+    expect(await admin.provider!.getBalance(thirdParty.address)).to.be.equal(feeRecipientEth);
 
     expect(
       await weth.balanceOf(thirdParty.address)
