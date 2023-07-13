@@ -52,45 +52,6 @@ interface SetupTestResult {
 
 export type SetupTestFunction = (opts: SetupTestOpts) => Promise<SetupTestResult>;
 
-// async function setupRegistry(
-//   alice: SignerWithAddress,
-//   bob: SignerWithAddress,
-//   testNFT: Contract,
-//   coin: Contract,
-//   executionDelegate: Contract,
-//   exchange: Contract
-// ) {
-
-//   await exchange.setWethAddress(coin.address);
-
-//   await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
-//   await testNFT.connect(bob).setApprovalForAll(executionDelegate.address, true);
-
-//   await coin.connect(bob).approve(executionDelegate.address, eth('10000000000000'));
-//   await coin.connect(alice).approve(executionDelegate.address, eth('1000000000000'));
-
-// }
-
-
-async function setupRegistry(
-  alice: SignerWithAddress,
-  bob: SignerWithAddress,
-  testNFT: Contract,
-  coin: Contract,
-  executionDelegate: Contract,
-  exchange: Contract
-) {
-
-  // await exchange.setWethAddress(coin.address);
-
-  await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
-  await testNFT.connect(bob).setApprovalForAll(executionDelegate.address, true);
-
-  await coin.connect(bob).approve(executionDelegate.address, eth('10000000000000'));
-  await coin.connect(alice).approve(executionDelegate.address, eth('1000000000000'));
-
-}
-
 async function _registryWETH(coin: Contract, exchange: Contract) {
   await exchange.setWethAddress(coin.address);
 }
@@ -118,25 +79,21 @@ async function _mockNFT(alice: SignerWithAddress, bob: SignerWithAddress) {
 
   return { testNFT };
 }
+
 async function _approveNFT(nft: Contract, account: SignerWithAddress, executionDelegate: ExecutionDelegate) {
   await nft.connect(account).setApprovalForAll(executionDelegate.address, true);
 }
 
 async function _approveERC20(coin: MockERC20, account: SignerWithAddress, executionDelegate: ExecutionDelegate) {
-  
   await coin.connect(account).approve(executionDelegate.address, eth('10000000000000'));
 }
-
-// const provider = hre.ethers.provider;
 
 export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTestResult> {
 
   const { exchange, executionDelegate, matchingPolicies } = contracts;
   const [ admin, alice, bob, thirdParty ] = await hre.ethers.getSigners();
-
   const { weth, usdt, usdc } = await _mockTokens(alice, bob);
   const { testNFT } = await _mockNFT(alice, bob);
-  
 
   await _registryWETH(weth, exchange);
 
@@ -220,7 +177,6 @@ export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTe
       exchange,
     );
   };
-
 
   return {
     provider: hre.ethers.provider,
