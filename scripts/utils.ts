@@ -12,11 +12,10 @@ const contracts = {
   PolicyManager: 'POLICY_MANAGER',
   StandardPolicyERC721: 'STANDARD_POLICY_ERC721',
   MerkleVerifier: 'MERKLE_VERIFIER',
-
   DMXExchangeProxy: 'DMXExchangeProxy',
 
-  MockERC721: 'MockERC721', 
-  MockERC20: 'MockERC20',
+  // MockERC721: 'MockERC721', 
+  // MockERC20: 'MockERC20',
 };
 
 export function getAddress(contract: string, network: string): string {

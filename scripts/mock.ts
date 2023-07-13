@@ -130,7 +130,7 @@ task('set-fee', 'Deploy').setAction(async (_, hre) => {
   await exchange.setFeeRate(250)
 
   let feerate = await exchange.feeRate()
-  console.log('feerate:', feerate.toString()) 
+  console.log('feerate:', feerate.toString())
   console.log('set-fee ....')
 
 

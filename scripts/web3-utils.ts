@@ -23,18 +23,16 @@ export function getAddressEnv(key: string, NETWORK: string): string {
 
 export function getAddress(
   repo: string,
-  contract: string,
+  contractName: string,
   contractVariables: Record<string, string>,
   network: string,
 ): string {
   try {
-    const addresses = JSON.parse(
-      fs.readFileSync(`${DEPLOYMENTS_DIR}/${network}.json`).toString(),
-    );
-    const contractVariable = contractVariables[contract];
-    return addresses[repo][contractVariable];
+    let _content = fs.readFileSync(`${DEPLOYMENTS_DIR}/${network}/${contractName}.json`).toString();
+    const { address } = JSON.parse(_content);
+    return address
   } catch (err) {
-    throw Error(`${contract} deployment on ${network} not found`);
+    throw Error(`${contractName} deployment on ${network} not found`);
   }
 }
 

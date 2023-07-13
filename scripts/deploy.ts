@@ -7,9 +7,9 @@ import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typec
  
 
 const DMXExchange_ContractName = 'DMXExchange'; //'DMXExchange';
-const ERC1967Proxy_ContractName = 'ERC1967Proxy';
+// const ERC1967Proxy_ContractName = 'ERC1967Proxy';
 
-export async function deployFull(hre: any, exchangeName: string = DMXExchange_ContractName): Promise<SetupExchangeResult> {
+export async function deployFull(hre: any, exchangeName: string): Promise<SetupExchangeResult> {
   // 1. 代理合约
   const executionDelegate = await deploy(hre, 'ExecutionDelegate') as ExecutionDelegate;
   // 2. 策略管理
@@ -55,30 +55,18 @@ task('deploy', 'Deploy').setAction(async (_, hre) => {
 });
 
 task('upgrade', 'Upgrade').setAction(async (_, hre) => {
-  const [admin] = await hre.ethers.getSigners();
-  const { network, NETWORK, chainId } = getNetwork(hre);
 
-  console.log(`Calling on ${network}`);
-  console.log(`Calling from: ${(await admin.getAddress()).toString()}`);
+  const { network } = getNetwork(hre);
 
-  const executionDelegateAddress = getAddress('ExecutionDelegate', network);
-  const policyManager = getAddress('PolicyManager', network);
   const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
-  console.log('merkleVerifierAddress:', merkleVerifierAddress);
 
-  const exchangeImpl = await deploy(hre, DMXExchange_ContractName, [], { libraries: { MerkleVerifier: merkleVerifierAddress } }, 'DMXExchange');
+  const _proxyAddr = await getAddress('DMXExchangeProxy', network);
+  const _impl = await deploy(hre, DMXExchange_ContractName, [], { libraries: { MerkleVerifier: merkleVerifierAddress } }, 'DMXExchange');
   
-  
-  const initializeInterface = new hre.ethers.utils.Interface(['function initialize(address, address)']);
+  const proxy = new hre.ethers.Contract(_proxyAddr, _impl.interface, _impl.signer);
+  await proxy.upgradeTo(_impl.address, { gasLimit: 3738000 });
 
-  const initialize = initializeInterface.encodeFunctionData('initialize', [executionDelegateAddress, policyManager]);
-
-  const _exchangeProxy = await getAddress('DMXExchangeProxy', network);
-  const exchange = new hre.ethers.Contract(_exchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
-  
-  await exchange.upgradeToAndCall(exchangeImpl.address, initialize);
-
-  console.log('functions::', exchange.functions);
+  console.log('functions::', proxy.functions);
 
 });
 
