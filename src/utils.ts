@@ -99,7 +99,7 @@ export class Order {
     };
   }
   
-  // 只有 卖方 才能挂 Bulk 单 
+  // only seller can pack bulk orders
   async packBulk(otherOrders: Order[]) {
     const orders = [...otherOrders.map((_) => _.parameters)];
 

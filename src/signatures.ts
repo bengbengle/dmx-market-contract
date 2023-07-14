@@ -127,7 +127,7 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
   };
 }
 
-// 获取 订单列表的 MerkleProof
+// fetch the MerkleProof of the order list
 async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
   const leaves = await Promise.all(
     orders.map(async (order) => {
@@ -139,7 +139,6 @@ async function getOrderTreeRoot(orders: OrderParameters[], exchange: Contract) {
   return getMerkleProof(leaves);
 }
 
-// 构建 MerkleTree, 然后返回 root 
 function getMerkleProof(leaves: string[]) {
   const tree = new MerkleTree(leaves, ethers.utils.keccak256, { sort: true });
   const root = tree.getHexRoot();
