@@ -180,7 +180,6 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         bytes32 hash = _hashOrder(order, nonces[order.trader]);
 
         if (!cancelledOrFilled[hash]) {
-            /* 将订单标记为已取消, 以防止它被匹配 */
             cancelledOrFilled[hash] = true;
             emit OrderCancelled(hash);
         }
@@ -222,7 +221,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         emit NewPolicyManager(policyManager);
     }
 
-    // set weth 地址
+    // set weth address
     function setWethAddress(address _weth) external onlyOwner
     {
         require(_weth != address(0), "Address cannot be zero");
@@ -309,7 +308,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     }
 
     /**
-     * @dev 检查订单是否可以在 当前时间 结算
+     * @dev check if the order can be settled
      * @param listingTime order listing time
      * @param expirationTime order expiration time
      */
@@ -322,7 +321,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     }
 
     /**
-     * @dev 验证签名的有效性
+     * @dev ckeck the validity of the order signature
      * @param order order
      * @param orderHash hash of order
      */
@@ -362,7 +361,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
      * @param r r
      * @param s s
      * @param signatureVersion signature version
-     * @param extraSignature 打包 默克尔 路径
+     * @param extraSignature packed merkle path
      */
     function _validateUserAuthorization(
         bytes32 orderHash,
@@ -478,16 +477,14 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
         uint256 totalFee = 0;
 
-        /* 如果启用, 收取 协议费 */
         if (feeRate > 0) {
             uint256 fee = (price * feeRate) / INVERSE_BASIS_POINT;
-            _transferTo(paymentToken, from, feeRecipient, fee); // 收取 协议费
+            _transferTo(paymentToken, from, feeRecipient, fee); 
             totalFee += fee;
         }
 
-        /* 收取 版税  */
         for (uint8 i = 0; i < fees.length; i++) {
-            uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT; // 收取版税，可能有 多笔
+            uint256 fee = (price * fees[i].rate) / INVERSE_BASIS_POINT;
             _transferTo(paymentToken, from, fees[i].recipient, fee);
             totalFee += fee;
         }
