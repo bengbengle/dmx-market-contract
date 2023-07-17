@@ -92,7 +92,8 @@ const config: HardhatUserConfig = {
   //   tests: './tests',
   // },
   gasReporter: {
-    enabled: false,
+    enabled: true,
+    coinmarketcap: "12cc6805-d3a2-4bed-85e6-fe3119b41877",
     currency: "USD",
   },
   etherscan: {

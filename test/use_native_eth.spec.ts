@@ -84,20 +84,7 @@
 //             await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
 //         }
 //         assert(_isApprovedForAll, '_isApprovedForAll is false');
-
-
-//         // Verify 3. check balance
-//         let _balance = await (usdt as MockERC20).balanceOf(bob.address);
-//         console.log('bob usdt _balance:', formatEther(_balance.toString()));
-
-//          // Verify 4. check allowance
-//         let _allowance = await (usdt as MockERC20).allowance(bob.address, executionDelegate.address);
-//         if (!_allowance) {
-//             await (usdt as MockERC20).connect(bob).approve(executionDelegate.address, eth('1000000'));
-//         }
-        
-//         assert(_isApprovedForAll, '_allowance is false');
-
+ 
 //     });
 
 //     beforeEach(async () => {
@@ -106,10 +93,11 @@
 //         tokenId = tokenId + 1;
 //         await testNFT.mint(alice.address, tokenId);
 
-//         const price = eth('100');
+//         const price = eth('0.01');
+//         const ETH = '0x0000000000000000000000000000000000000000';
 
-//         sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
-//         buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: usdt.address, price });
+//         sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: ETH, price });
+//         buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: ETH, price });
 
 //         assert(tokenId == 1, 'tokenId is false')
 //         sellInput = await sell.pack({ signer: alice });
@@ -118,22 +106,13 @@
 //     });
 
 //     it('check the single order is valid', async () => {
-
-//         let tx = exchange.connect(bob).execute(sellInput, buyInput)
+//         var _bobBalance = await bob.getBalance();
+//         console.log('_bobBalance:', _bobBalance.toString())
+//         let tx = exchange.connect(bob).execute(sellInput, buyInput, { value: eth('0.01') } )
 //         const pendingTx: TransactionResponse = await tx;
 //         const receipt = await pendingTx.wait();
 
-//         // console.log('receipt:', receipt.status);
-
 //         assert(receipt.status == 1, 'receipt.status is false');
-
-//         let alice_usdt = await usdt.balanceOf(alice.address)
-//         let bob_usdt = await usdt.balanceOf(bob.address)
-//         let admin_usdt = await usdt.balanceOf(admin.address)
-
-//         assert(formatEther(alice_usdt.toString()) == '1097.0', 'alice_usdt is false');
-//         assert(formatEther(bob_usdt.toString()) == '900.0', 'bob_usdt is false');
-//         assert(formatEther(admin_usdt.toString()) == '3.0', 'admin_usdt is false');
 
 //     });
 // });

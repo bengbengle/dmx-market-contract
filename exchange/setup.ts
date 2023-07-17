@@ -91,14 +91,15 @@ async function _approveERC20(coin: MockERC20, account: SignerWithAddress, execut
 export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTestResult> {
 
   const { exchange, executionDelegate, matchingPolicies } = contracts;
+  console.log('executionDelegate:', executionDelegate.address)
   const [ admin, alice, bob, thirdParty ] = await hre.ethers.getSigners();
   const { weth, usdt, usdc } = await _mockTokens(alice, bob);
   const { testNFT } = await _mockNFT(alice, bob);
 
   await _registryWETH(weth, exchange);
 
-  await _approveNFT(testNFT, alice, executionDelegate);
-  await _approveNFT(testNFT, bob, executionDelegate);
+  // await _approveNFT(testNFT, alice, executionDelegate);
+  // await _approveNFT(testNFT, bob, executionDelegate);
   
   await _approveERC20(weth, alice, executionDelegate);
   await _approveERC20(weth, bob, executionDelegate);

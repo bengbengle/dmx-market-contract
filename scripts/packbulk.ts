@@ -81,10 +81,10 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
     const _blockNumber = (await hre.ethers.provider.getBlock('latest')).number;
     const seller_orders = await sell.bulkSigs(otherOrders, _blockNumber);
     
-    const seller_orders_hashes = await sell.bulkhash(otherOrders, _blockNumber);
+    // const seller_orders_hashes = await sell.bulkhash(otherOrders, _blockNumber);
 
-    console.log('seller_orders:', JSON.stringify(seller_orders, null, 4) );
-    console.log('seller_orders_hashes:', JSON.stringify(seller_orders_hashes, null, 4));
+    // console.log('seller_orders:', JSON.stringify(seller_orders, null, 4) );
+    // console.log('seller_orders_hashes:', JSON.stringify(seller_orders_hashes, null, 4));
 
     let buy = generateOrder(admin, { tokenId: token1, side: Side.Buy});
     

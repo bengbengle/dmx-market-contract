@@ -12,6 +12,6 @@ export type SetupExchangeResult = {
 }
 
 export const setupExchange = async (): Promise<any> => {
-  let contracts: SetupExchangeResult = await deployFull(hre, 'TestDMXExchange')
+  let contracts: SetupExchangeResult = await deployFull(hre, 'DMXExchange')
   return await setupTest(contracts);
 }
