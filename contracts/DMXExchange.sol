@@ -107,8 +107,8 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         bytes32 buyHash
     );
 
-    event OrderCancelled(bytes32 hash);
-    event NonceIncremented(address trader, uint256 newNonce);
+    event OrderCancelled(bytes32 indexed hash);
+    event NonceIncremented(address indexed trader, uint256 indexed newNonce);
 
     event NewExecutionDelegate(IExecutionDelegate executionDelegate);
     event NewPolicyManager(IPolicyManager policyManager);
