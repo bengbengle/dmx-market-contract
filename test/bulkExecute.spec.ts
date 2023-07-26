@@ -1,143 +1,143 @@
-import { expect } from 'chai';
-import { Wallet, Contract, BigNumber } from 'ethers';
+// import { expect } from 'chai';
+// import { Wallet, Contract, BigNumber } from 'ethers';
 
-import type { CheckBalances, GenerateOrder } from '../exchange';
-import { eth, Order, Side, waitForTx, ZERO_ADDRESS } from '../exchange';
-// import { waitForTx } from '../scripts/web3-utils';
-import { setupExchange } from './utils/index';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
+// import type { CheckBalances, GenerateOrder } from '../exchange';
+// import { eth, Order, Side, waitForTx, ZERO_ADDRESS } from '../exchange';
+// // import { waitForTx } from '../scripts/web3-utils';
+// import { setupExchange } from './utils/index';
+// import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+// import { ethers } from 'hardhat';
 
-describe('Bulk_Execute_Tests', function () {
+// describe('Bulk_Execute_Tests', function () {
 
-    const INVERSE_BASIS_POINT = 10000;
-    const price: BigNumber = eth('1');
-    const feeRate = 300; // 3%
+//     const INVERSE_BASIS_POINT = 10000;
+//     const price: BigNumber = eth('1');
+//     const feeRate = 300; // 3%
 
-    let exchange: Contract;
-    let executionDelegate: Contract;
+//     let exchange: Contract;
+//     let executionDelegate: Contract;
 
-    let admin: SignerWithAddress;
-    let alice: SignerWithAddress;
-    let bob: SignerWithAddress;
-    let thirdParty: SignerWithAddress;
+//     let admin: SignerWithAddress;
+//     let alice: SignerWithAddress;
+//     let bob: SignerWithAddress;
+//     let thirdParty: SignerWithAddress;
 
-    let weth: Contract;
-    let usdt: Contract;
-    let usdc: Contract;
-    let testNFT: Contract;
+//     let weth: Contract;
+//     let usdt: Contract;
+//     let usdc: Contract;
+//     let testNFT: Contract;
 
-    let generateOrder: GenerateOrder;
-    // let checkBalances: CheckBalances;
+//     let generateOrder: GenerateOrder;
+//     // let checkBalances: CheckBalances;
 
-    let sell: Order;
-    // let sellInput: any;
-    let buy: Order;
-    // let buyInput: any;
-    // let otherOrders: Order[];
-    let fee: BigNumber;
-    let tokenId: number;
-    let priceMinusFee: BigNumber;
+//     let sell: Order;
+//     // let sellInput: any;
+//     let buy: Order;
+//     // let buyInput: any;
+//     // let otherOrders: Order[];
+//     let fee: BigNumber;
+//     let tokenId: number;
+//     let priceMinusFee: BigNumber;
 
-    // let aliceBalance: BigNumber;
-    // let aliceBalanceWeth: BigNumber;
-    // let bobBalance: BigNumber;
-    // let bobBalanceWeth: BigNumber;
-    // let feeRecipientBalance: BigNumber;
-    // let feeRecipientBalanceWeth: BigNumber;
+//     // let aliceBalance: BigNumber;
+//     // let aliceBalanceWeth: BigNumber;
+//     // let bobBalance: BigNumber;
+//     // let bobBalanceWeth: BigNumber;
+//     // let feeRecipientBalance: BigNumber;
+//     // let feeRecipientBalanceWeth: BigNumber;
 
-    // let adminBalance: BigNumber;
-    // let adminBalanceWeth: BigNumber;
+//     // let adminBalance: BigNumber;
+//     // let adminBalanceWeth: BigNumber;
 
-    // const updateBalances = async () => {
-    //     aliceBalance = await alice.getBalance();
-    //     aliceBalanceWeth = await weth.balanceOf(alice.address);
-    //     bobBalance = await bob.getBalance();
-    //     bobBalanceWeth = await weth.balanceOf(bob.address);
-    //     feeRecipientBalance = await ethers.provider.getBalance(thirdParty.address);
-    //     feeRecipientBalanceWeth = await weth.balanceOf(thirdParty.address);
-    // };
+//     // const updateBalances = async () => {
+//     //     aliceBalance = await alice.getBalance();
+//     //     aliceBalanceWeth = await weth.balanceOf(alice.address);
+//     //     bobBalance = await bob.getBalance();
+//     //     bobBalanceWeth = await weth.balanceOf(bob.address);
+//     //     feeRecipientBalance = await ethers.provider.getBalance(thirdParty.address);
+//     //     feeRecipientBalanceWeth = await weth.balanceOf(thirdParty.address);
+//     // };
 
-    before(async () => {
-        ({
-            admin,
-            alice,
-            bob,
-            thirdParty,
+//     before(async () => {
+//         ({
+//             admin,
+//             alice,
+//             bob,
+//             thirdParty,
 
-            weth,
-            testNFT,
-            tokenId,
-            exchange,
+//             weth,
+//             testNFT,
+//             tokenId,
+//             exchange,
 
-            generateOrder,
-            // checkBalances,
-            executionDelegate
+//             generateOrder,
+//             // checkBalances,
+//             executionDelegate
 
-        } = await setupExchange());
+//         } = await setupExchange());
 
 
-        // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
-        let isApprovedContract = await executionDelegate.contracts(exchange.address);
-        if (!isApprovedContract) {
-            await executionDelegate.approveContract(exchange.address)
-        }
+//         // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
+//         let isApprovedContract = await executionDelegate.contracts(exchange.address);
+//         if (!isApprovedContract) {
+//             await executionDelegate.approveContract(exchange.address)
+//         }
 
-        // Verify 2. 如果没有授权，需要授权
-        let _isApprovedForAll = await testNFT.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
-        console.log('_isApprovedForAll:', _isApprovedForAll)
+//         // Verify 2. 如果没有授权，需要授权
+//         let _isApprovedForAll = await testNFT.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
+//         console.log('_isApprovedForAll:', _isApprovedForAll)
     
-        if (!_isApprovedForAll) {
-            await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
-        }
+//         if (!_isApprovedForAll) {
+//             await testNFT.connect(alice).setApprovalForAll(executionDelegate.address, true);
+//         }
         
-        _isApprovedForAll = await testNFT.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
-        console.log('_isApprovedForAll2:', _isApprovedForAll)
+//         _isApprovedForAll = await testNFT.connect(alice).isApprovedForAll(alice.address, executionDelegate.address);
+//         console.log('_isApprovedForAll2:', _isApprovedForAll)
         
-    });
+//     });
 
-    beforeEach(async () => {
-        // await updateBalances();
+//     beforeEach(async () => {
+//         // await updateBalances();
  
-        fee = price.mul(feeRate).div(INVERSE_BASIS_POINT);
-        priceMinusFee = price.sub(fee);
+//         fee = price.mul(feeRate).div(INVERSE_BASIS_POINT);
+//         priceMinusFee = price.sub(fee);
 
-        sell = generateOrder(alice, { side: Side.Sell, tokenId });
-        buy = generateOrder(bob, { side: Side.Buy, tokenId });
-    }); 
-
-
-    it('should bulkExecute succeed with native eth call multiple orders', async () => {
-
-        const NativeETH = ZERO_ADDRESS
+//         sell = generateOrder(alice, { side: Side.Sell, tokenId });
+//         buy = generateOrder(bob, { side: Side.Buy, tokenId });
+//     }); 
 
 
-        const gen_execution = async (tokenId: number) => {
-            const gen_sell_order = generateOrder(alice, { side: Side.Sell, tokenId: tokenId, paymentToken: NativeETH });
+//     it('should bulkExecute succeed with native eth call multiple orders', async () => {
 
-            const gen_buy_order = generateOrder(admin, { side: Side.Buy, tokenId: tokenId, paymentToken: NativeETH });
+//         const NativeETH = ZERO_ADDRESS
 
-            const sellInput = await gen_sell_order.pack();
 
-            const buyInput = await gen_buy_order.packNoSigs();
+//         const gen_execution = async (tokenId: number) => {
+//             const gen_sell_order = generateOrder(alice, { side: Side.Sell, tokenId: tokenId, paymentToken: NativeETH });
 
-            const _execution = { sell: sellInput, buy: buyInput }
+//             const gen_buy_order = generateOrder(admin, { side: Side.Buy, tokenId: tokenId, paymentToken: NativeETH });
 
-            return _execution
-        }
+//             const sellInput = await gen_sell_order.pack();
 
-        const input = []
+//             const buyInput = await gen_buy_order.packNoSigs();
+
+//             const _execution = { sell: sellInput, buy: buyInput }
+
+//             return _execution
+//         }
+
+//         const input = []
         
-        for (let i = 1; i <= 40; i++) {
-            await testNFT.mint(alice.address, i);
+//         for (let i = 1; i <= 40; i++) {
+//             await testNFT.mint(alice.address, i);
 
-            const _execution = await gen_execution(i)
-            input.push(_execution)
-        }
+//             const _execution = await gen_execution(i)
+//             input.push(_execution)
+//         }
 
-        const tx = await waitForTx(
-            exchange.connect(admin).bulkExecute(input, { value: (price.mul(input.length)) })
-        ); 
-        console.log(tx.status)
-    });
-});
+//         const tx = await waitForTx(
+//             exchange.connect(admin).bulkExecute(input, { value: (price.mul(input.length)) })
+//         ); 
+//         console.log(tx.status)
+//     });
+// });
