@@ -4,6 +4,8 @@ import { OrderParameters, OrderWithNonce, TypedData } from './utils';
 
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
 
+const CHAIN_ID = 5;
+
 const {
   eip712Hash,
   hashStruct,
@@ -51,7 +53,7 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: 5,
+      chainId: CHAIN_ID,
       verifyingContract: exchange,
     },
     data: order,
@@ -103,7 +105,7 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       {
         name: 'DMX Exchange',
         version: '1.0',
-        chainId: 5,
+        chainId: CHAIN_ID,
         verifyingContract: exchange.address,
       },
       {
@@ -162,7 +164,7 @@ export function hash(parameters: any, exchange: Contract): string {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: 5,
+      chainId: CHAIN_ID,
       verifyingContract: exchange.address,
     },
     message: parameters,
@@ -175,7 +177,7 @@ export function hash(parameters: any, exchange: Contract): string {
 
 }
 
-export function hashWithDomain(parameters: any, exchange: Contract, chainId: number = 5): string {
+export function hashWithDomain(parameters: any, exchange: Contract): string {
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
 
@@ -194,7 +196,7 @@ export function hashWithDomain(parameters: any, exchange: Contract, chainId: num
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: chainId,
+      chainId: CHAIN_ID,
       verifyingContract: exchange.address,
     },
     message: parameters,

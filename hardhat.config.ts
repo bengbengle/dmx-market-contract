@@ -14,6 +14,7 @@ import './scripts/deploy'
 import './scripts/mock'
 import './scripts/execution'
 import './scripts/packbulk'
+import './scripts/batchlisting'
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 

@@ -3,8 +3,8 @@
 
 // import type { CheckBalances, GenerateOrder } from '../exchange';
 // import { eth, Order, Side, waitForTx, ZERO_ADDRESS } from '../exchange';
-// // import { waitForTx } from '../scripts/web3-utils';
 // import { setupExchange } from './utils/index';
+
 // import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 // import { ethers } from 'hardhat';
 

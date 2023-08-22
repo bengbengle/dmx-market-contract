@@ -44,12 +44,13 @@ export async function listing(authToken: string, reqBody: any) {
         {
             method: 'POST',
             headers: {
-                'authorization': authToken,//'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoxMCwiZXhwIjoxNjkxOTg2MjU3LCJ1c2VyQWRkcmVzcyI6IjB4NTg2NkFBNTE4Q0YwYkJlOTk0Q0MwOWJiM2MzQmFlOTI5MEY3Nzg0MCJ9.2pmfUMmHaNj-5ue7SYxwZoHf6PCq4UugtK3m5fDWRnY',
+                'authorization': authToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(reqBody)
         })
-        console.log('req:', req);
+    console.log('req:', req);
     const res = await req.json();
+    console.log('res:', res)
     return res;
 }

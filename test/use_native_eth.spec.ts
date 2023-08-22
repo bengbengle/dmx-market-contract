@@ -111,8 +111,6 @@
 //         let tx = exchange.connect(bob).execute(sellInput, buyInput, { value: eth('0.01') } )
 //         const pendingTx: TransactionResponse = await tx;
 //         const receipt = await pendingTx.wait();
-
 //         assert(receipt.status == 1, 'receipt.status is false');
-
 //     });
 // });

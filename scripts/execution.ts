@@ -5,7 +5,7 @@ import { getNetwork, waitForTx } from './web3-utils';
 import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 
 
-import { login, listing, get_nonce, sign } from './funcs'
+import { login, listing, get_nonce, sign } from './backendAPI'
 import { BigNumber, ethers } from 'ethers';
 import { DMXExchange } from '../typechain-types';
 import { formatEther } from 'ethers/lib/utils';
@@ -158,72 +158,6 @@ task("nft-listing", "sign and Maker a NFT Listing").setAction(async (_, hre) => 
 });
 
 
-task('listingall', 'listing all').setAction(async (_, hre) => {
-
-    const USDT = '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
-    const NFT_Address = '0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3'
-    
-    // 0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3 nft
-    // DMXExchangeProxy: 0x5de88f80dd2119c538254f7ec7b1f6b6987681b8
-    // exchange: 0x5de88f80dd2119c538254f7ec7b1f6b6987681b8
-    // testNFT: 0x05407752491F14198F405b871517321922F47C33
-    // standardPolicyERC721: 0x173e22E31B1cF8fd4dBd82144521BBaEE34012Ed
-
-    const [admin] = await hre.ethers.getSigners();
-    const { exchange, matchingPolicies } = await getSetupExchange(hre);
-    const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
-
-    let _nonce: string = await get_nonce(admin.address);
-
-    let _sig = await admin.signMessage(_nonce);
-
-    let _token = await login(admin.address, _sig);
-    console.log('_login_token:', _token);
-    const trader = new Trader(admin, exchange);
-    
-    for(let i=31; i <= 60; i++) {
-
-        let tokenId = i.toString()
-
-        trader.addOrder({
-            tokenId: tokenId,
-            matchingPolicy: matchingPolicy, 
-            collection: NFT_Address, 
-            amount: 0,
-            side: Side.Sell,
-            salt: Date.now(),
-            listingTime: '1691316213',  //2023-08-06 18:03:33
-            expirationTime: '1699697013', //2023-11-11 18:03:33
-            price: eth('1'),
-            paymentToken: USDT, 
-            extraParams: '0x'
-        })
-    }
-    
-
-    
-    const nonce = await exchange.nonces(admin.address)
-    console.log('nonce:', nonce);
-
-    const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
-    const _orders = await trader.bulkSigs(blocknumber as number, nonce)
-     
-    
-    _orders?.map(i => {
-        let price: BigNumber =  i?.order?.price;
-        i.order.numberPrice = formatEther(price.toString()) //price.toString();
-    })
-
-    const list_order = {
-        sale_nft_new: _orders
-    }
-    console.log('_orders:', JSON.stringify(list_order));
-
-    await listing(_token, list_order)
-
-});
-
-
 task('buyall', 'listing all').setAction(async (_, hre) => {
 
     const USDT = '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
@@ -300,12 +234,8 @@ task('buyall', 'listing all').setAction(async (_, hre) => {
         "signatureVersion": 1,
         "blockNumber": 9522181
     }
-    console.log('ssssssses:');
-    // let es = await exchange.estimateGas.execute(sell as any, buy as any, { value: 0, gasLimit: 4500000  })
-    // console.log('ssssssses:', es);
-
+    
     let tx = await exchange.execute(sell as any, buy as any)
-
     let ss = await tx.wait();
     console.log('ss:', ss);
     // let _nonce: string = await get_nonce(admin.address);

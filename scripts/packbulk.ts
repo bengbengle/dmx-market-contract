@@ -105,11 +105,7 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
             .bulkExecute([_execution1, _execution2], { value: price.mul(3), gasLimit: 3738000 })
     )
 
-    // await waitForTx(
-    //     await exchange
-    //         .connect(admin)
-    //         .execute(seller_orders[0], buyer_orders[0], { value: price.mul(2), gasLimit: 3738000 })
-    // )
+  
     console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
     console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
     console.log('alice eth balance:', (await alice.getBalance()).toString());
