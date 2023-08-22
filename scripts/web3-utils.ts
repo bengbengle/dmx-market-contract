@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ContractReceipt, Signer } from 'ethers';
+import { ContractReceipt, ContractTransaction, Signer } from 'ethers';
 import { getContractAddress } from 'ethers/lib/utils';
 import fs from 'fs';
 import { FactoryOptions, HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -127,9 +127,8 @@ export async function deploy(
   return contract;
 }
 
-export async function waitForTx(tx: Promise<any>): Promise<ContractReceipt> {
-  const resolvedTx = await tx;
-  return await resolvedTx.wait();
+export async function waitForTx(tx: ContractTransaction): Promise<ContractReceipt> {
+  return await tx.wait();
 }
 
 export function updateAddresses(

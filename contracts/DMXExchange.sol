@@ -175,7 +175,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
      */
     function cancelOrder(Order calldata order) public {
         /* Assert sender is authorized to cancel order. */
-        require(msg.sender == order.trader);
+        require(msg.sender == order.trader, "Sender is authorized to cancel order");
 
         bytes32 hash = _hashOrder(order, nonces[order.trader]);
 
@@ -250,7 +250,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         internalCall
         reentrancyGuard
     {
-        require(sell.order.side == Side.Sell);
+        require(sell.order.side == Side.Sell, "Sell side required");
 
         bytes32 sellHash = _hashOrder(sell.order, nonces[sell.order.trader]);
         bytes32 buyHash = _hashOrder(buy.order, nonces[buy.order.trader]);
@@ -415,6 +415,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         returns (uint256 price, uint256 tokenId, uint256 amount, AssetType assetType)
     {
         bool canMatch;
+        // 8-6 <= 0
         if (sell.listingTime <= buy.listingTime) {
             /* Seller is maker. */
             require(policyManager.isPolicyWhitelisted(sell.matchingPolicy), "Policy is not whitelisted");

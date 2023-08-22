@@ -10,13 +10,10 @@
     "compile": "hardhat compile",
     "build": "hardhat compile",
     "run_upgrade": "hardhat upgrade",
-
     "deploy:goerli": "hardhat deploy --network goerli",
     "verify:goerli": "hardhat verify --network goerli",
-    
     "deploy": "yarn compile && hardhat deploy",
     "upgrade:goerli": "yarn compile && hardhat upgrade --network goerli",
-
     "task": "hardhat --network goerli",
     "setfee": "hardhat set-fee --network goerli"
   },
@@ -29,17 +26,13 @@
     "@ethersproject/bignumber": "^5.4.1",
     "@ethersproject/bytes": "^5.4.0",
     "@ethersproject/providers": "^5.4.5",
-    "hardhat": "^2.11.2",
-    "hardhat-gas-reporter": "^1.0.9",
-    "@nomiclabs/hardhat-ethers": "^2.1.1",
-    "@nomiclabs/hardhat-etherscan": "^3.1.0",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
-
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
-    "@typechain/hardhat": "^6.1.3",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.1.1",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "@typechain/ethers-v5": "^10.1.0",
-
+    "@typechain/hardhat": "^6.1.3",
     "@types/chai": "^4.2.21",
     "@types/fs-extra": "^9.0.12",
     "@types/mocha": "^9.0.0",
@@ -57,7 +50,8 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "5.6.0",
     "fs-extra": "^10.0.0",
-  
+    "hardhat": "^2.11.2",
+    "hardhat-gas-reporter": "^1.0.9",
     "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "mocha": "^9.1.1",

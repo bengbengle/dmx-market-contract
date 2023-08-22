@@ -1,0 +1,31 @@
+{
+    "order": {
+      "trader": "0x558395439377A3146aF3076B44B51E41504bD588",
+      "side": 1,
+      "matchingPolicy": "0xd8c2bC5627eBB091A7eADe6abA5a942e8fa886F7",
+      "collection": "0xb02e60114675159c0419e0E14787D410d22a3a6b",
+      "tokenId": 1,
+      "amount": 0,
+      "paymentToken": "0x1abe5a4caA5C361DB42B28b4F6A731ff8D1B171e",
+      "price": {
+        "type": "BigNumber",
+        "hex": "0x056bc75e2d63100000"
+      },
+      "listingTime": "0",
+      "expirationTime": "0",
+      "fees": [
+        {
+          "rate": 300,
+          "recipient": "0x5866AA518CF0bBe994CC09bb3c3Bae9290F77840"
+        }
+      ],
+      "salt": 0,
+      "extraParams": "0x"
+    },
+    "v": 28,
+    "r": "0xc1809795edfb7e99f080cec156ad83f67771ef0cd89842b3adcfabc6bc7891a7",
+    "s": "0x5ad0d908009a5768ca92758d7c3b1fc7e8879b35607ba3f4804bc647895a4ed9",
+    "extraSignature": "0x",
+    "signatureVersion": 0,
+    "blockNumber": 0
+  }

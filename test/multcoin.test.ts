@@ -6,22 +6,23 @@ import hre from 'hardhat';
 import { Contract, BigNumber, providers, Wallet } from 'ethers';
 import { setupExchange } from './utils/index';
 import type { CheckBalances, GenerateOrder } from '../exchange';
-import { eth, Order, Side, setupTest } from '../exchange';
+import { eth, Order, Side, setupTest, Trader } from '../exchange';
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionResponse } from "@ethersproject/providers";
 import { formatEther } from "ethers/lib/utils";
-import { MockERC20 } from "../typechain-types";
+import { DMXExchange, MockERC20, StandardPolicyERC721, } from "../typechain-types";
 
 const { ethers } = hre;
 describe('MultiCoinTests', function () {
 
-    let exchange: Contract;
+    let exchange: DMXExchange;
     let executionDelegate: Contract;
     let admin: SignerWithAddress;
     let alice: SignerWithAddress;
     let bob: SignerWithAddress;
     let thirdParty: SignerWithAddress;
+    // standardPolicyERC721: StandardPolicyERC721;
 
     let weth: Contract;
     let usdt: Contract;
@@ -34,6 +35,7 @@ describe('MultiCoinTests', function () {
     let buy: Order;
     let buyInput: any;
     let tokenId: number = 0;
+    let standardPolicyERC721: StandardPolicyERC721;
 
     let aliceBalance: BigNumber;
     let aliceUsdtBalance: BigNumber;
@@ -66,6 +68,7 @@ describe('MultiCoinTests', function () {
             exchange,
             generateOrder,
             executionDelegate,
+            matchingPolicies: { standardPolicyERC721 },
             usdt,
         } = await setupExchange());
 
@@ -102,7 +105,9 @@ describe('MultiCoinTests', function () {
 
     });
 
-    beforeEach(async () => {
+    
+
+    it('check the single order is valid', async () => {
 
         await updateBalances();
         tokenId = tokenId + 1;
@@ -113,19 +118,17 @@ describe('MultiCoinTests', function () {
         sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
         buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: usdt.address, price });
 
-        assert(tokenId == 1, 'tokenId is false')
         sellInput = await sell.pack({ signer: alice });
         buyInput = await buy.pack();
 
-    });
 
-    it('check the single order is valid', async () => {
 
-        let tx = exchange.connect(bob).execute(sellInput, buyInput)
+        console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
+        console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
+        let tx =  exchange.connect(bob).execute(sellInput, buyInput);
+        console.log('tx:', tx);
         const pendingTx: TransactionResponse = await tx;
         const receipt = await pendingTx.wait();
-
-        // console.log('receipt:', receipt.status);
 
         assert(receipt.status == 1, 'receipt.status is false');
 
@@ -137,5 +140,73 @@ describe('MultiCoinTests', function () {
         assert(formatEther(bob_usdt.toString()) == '900.0', 'bob_usdt is false');
         assert(formatEther(admin_usdt.toString()) == '3.0', 'admin_usdt is false');
 
+    });
+
+    it('check the bulk sell order is valid', async () => {
+        
+        await updateBalances();
+        await testNFT.mint(alice.address, 5);
+        await testNFT.mint(alice.address, 6);
+        await testNFT.mint(alice.address, 7);
+        await testNFT.mint(alice.address, 8);
+
+        const price = eth('100');
+
+        sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
+        buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: usdt.address, price });
+
+        sellInput = await sell.pack({ signer: alice });
+        buyInput = await buy.pack();
+
+        // standardPolicyERC721
+
+        let trader = new Trader(admin, exchange );
+        for(let i = 25; i <= 25; i++ ) {
+
+            let tokenId = i.toString()
+    
+            trader.addOrder({
+                tokenId: tokenId,
+                matchingPolicy: standardPolicyERC721.address, // '0x7A6E1b14DcE51275300C3e5617F6891c78bFCEfb', 
+                collection: testNFT.address, // '0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3', 
+                amount: 0,
+                side: Side.Sell,
+                salt: Date.now(),
+                listingTime: '1691316213',  //2023-08-06 18:03:33
+                expirationTime: '1699697013', //2023-11-11 18:03:33
+                price: eth('1'),
+                paymentToken: usdt.address, // '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A', 
+                extraParams: '0x'
+            })
+        }
+
+        const nonce = await exchange.nonces(admin.address)
+        console.log('nonce:', nonce);
+
+        const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
+        const _sell_orders = await trader.bulkSigs(blocknumber as number, nonce)
+        
+
+
+
+
+
+
+        
+        
+        // console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
+        // console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
+        // let tx =  exchange.connect(bob).execute(sellInput, buyInput);
+        // console.log('tx:', tx);
+        // const pendingTx: TransactionResponse = await tx;
+        // const receipt = await pendingTx.wait();
+        // assert(receipt.status == 1, 'receipt.status is false');
+        // let alice_usdt = await usdt.balanceOf(alice.address)
+        // let bob_usdt = await usdt.balanceOf(bob.address)
+        // let admin_usdt = await usdt.balanceOf(admin.address)
+
+        // assert(formatEther(alice_usdt.toString()) == '1097.0', 'alice_usdt is false');
+        // assert(formatEther(bob_usdt.toString()) == '900.0', 'bob_usdt is false');
+        // assert(formatEther(admin_usdt.toString()) == '3.0', 'admin_usdt is false');
     });
 });

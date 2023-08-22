@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { BigNumber, ContractReceipt, Signer, providers } from 'ethers';
-import { parseEther } from 'ethers/lib/utils';
+import { parseEther,  } from 'ethers/lib/utils';
 import { hashWithoutDomain, hash, hashWithDomain } from './signatures';
 
 import { sign, signBulk } from './signatures';
@@ -30,8 +30,8 @@ export interface OrderParameters {
   side: Side;
   matchingPolicy: string;
   collection: string;
-  tokenId: string | number;
-  amount: string | number;
+  tokenId: string;
+  amount: number;
   paymentToken: string;
   price: BigNumber;
   listingTime: string;
@@ -103,8 +103,10 @@ export class Order {
   async packBulk(otherOrders: Order[]) {
 
     const orders = [...otherOrders.map((_) => _.parameters)];
+    
+    const nonce = await this.exchange.nonces(orders[0].trader);
 
-    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange, nonce);
     
     return {
       order: orders[0],
@@ -122,7 +124,9 @@ export class Order {
 
     const orders = [...otherOrders.map((_) => _.parameters)];
 
-    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
+    const nonce = await this.exchange.nonces(orders[0].trader);
+
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange, nonce);
     
     let seller_sigs = [];
 
@@ -163,8 +167,8 @@ export class Order {
         side: Side.Buy,
       }
     })];
-
-    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange);
+    const nonce = await this.exchange.nonces(orders[0].trader);
+    const { path, r, v, s, orders_path } = await signBulk(orders, this.user, this.exchange, nonce);
     
     let seller_sigs = [];
 
@@ -183,6 +187,94 @@ export class Order {
 
     return seller_sigs;
   }
+}
+
+
+export class Trader {
+    user
+    exchange
+    orders: any = []
+    extraSignatures: any = []
+
+    constructor(user: any, exchange: any) {
+        this.user = user
+        this.exchange = exchange
+    }
+
+    async addOrder(overrides = {}, _extraSignature: string = '0x') {
+
+      const DEFAULT_ORDER: OrderWithNonce = {
+            trader: this.user.address,
+            side: Side.Sell,
+            matchingPolicy: '0x',
+            collection: '0x',
+            tokenId: '1',
+            amount: 0,
+            paymentToken: ZERO_ADDRESS,
+            price: eth('1'),
+            listingTime: '0',
+            expirationTime: '0',
+            fees: [
+                {
+                    rate: 300,
+                    recipient: '0x158F323C98547A0E5998eDB5A5BC9F182158159B',
+                },
+            ],
+            salt: 1,
+            extraParams: '0x',
+            nonce: 0,
+        }
+
+        const _order: OrderWithNonce = {...DEFAULT_ORDER, ...overrides}
+
+        this.orders.push(_order)
+
+        if (_order.side === Side.Buy) {
+            this.extraSignatures.push(_extraSignature)
+        }
+    }
+
+    // 只有 卖方 才能挂 Bulk 单
+    async bulkSigs(blockNumber: number , nonce: any) {
+        
+        const { path, r, v, s, orders_path } = await signBulk(this.orders, this.user, this.exchange, nonce as any)
+
+        let result = []
+
+        for (let i = 0; i < this.orders.length; i++) {
+            let sig = {
+                order: this.orders[i],
+                r,
+                v,
+                s,
+                extraSignature: orders_path[i],
+                signatureVersion: SignatureVersion.Bulk,
+                blockNumber,
+                hash: hashWithoutDomain({ ...this.orders[i], nonce: nonce }),
+            }
+
+            result.push(sig)
+        }
+
+        return result
+    }
+
+    async bulkNoSigs(blockNumber: number) {
+        let out = []
+        for (let i = 0; i < this.orders.length; i++) {
+            let sig = {
+                order: this.orders[i],
+                v: 27,
+                r: ZERO_BYTES32,
+                s: ZERO_BYTES32,
+                extraSignature: this.extraSignatures[i],
+                signatureVersion: SignatureVersion.Bulk,
+                blockNumber,
+            }
+            out.push(sig)
+        }
+        return out
+    }
 }
 
 export interface Field {

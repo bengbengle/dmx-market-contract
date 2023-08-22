@@ -4,15 +4,15 @@ import { OrderParameters, OrderWithNonce, TypedData } from './utils';
 
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
 
-const { 
-  eip712Hash, 
+const {
+  eip712Hash,
   hashStruct,
 
-  encodeData,
-  encodeType,
-  findTypeDependencies,
-  hashType,
-  sanitizeData,
+  // encodeData,
+  // encodeType,
+  // findTypeDependencies,
+  // hashType,
+  // sanitizeData,
 } = TypedDataUtils;
 
 const eip712Fee = {
@@ -61,9 +61,9 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
 export async function sign(order: OrderParameters, account: Wallet, exchange: Contract): Promise<Signature> {
 
   const nonce = await exchange.nonces(order.trader);
-  
+
   const _struct_to_sign = structToSign({ ...order, nonce }, exchange.address);
-  
+
   const _domain = _struct_to_sign.domain;
   const _types = {
     [eip712Fee.name]: eip712Fee.fields,
@@ -71,29 +71,28 @@ export async function sign(order: OrderParameters, account: Wallet, exchange: Co
   }
 
   const _value = _struct_to_sign.data;
-  
+
   const signature = account
     ._signTypedData(_domain, _types, _value)
     .then(async (sigBytes) => {
       const sig = ethers.utils.splitSignature(sigBytes);
       return sig;
     });
-
+    
 
   return signature;
 }
 
-export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract) {
-
+export async function signBulk(orders: OrderParameters[], account: Wallet, exchange: Contract, nonce: any) {
+  
   const { tree, root } = await _treeRoot(orders, exchange);
 
-  const nonce = await exchange.nonces(orders[0].trader);
-  
+
   const order_first = hashWithoutDomain({ ...orders[0], nonce });
   let path_first = ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(order_first)]);
 
   let orders_path = []
-  for(let i = 0; i < orders.length; i++) {
+  for (let i = 0; i < orders.length; i++) {
     let order = hashWithoutDomain({ ...orders[i], nonce })
     let orderPath = ethers.utils.defaultAbiCoder.encode(['bytes32[]'], [tree.getHexProof(order)]);
     orders_path.push(orderPath);
@@ -116,7 +115,7 @@ export async function signBulk(orders: OrderParameters[], account: Wallet, excha
       const sig = ethers.utils.splitSignature(sigBytes);
       return sig;
     });
-
+ 
   return {
     path: path_first,
     v: signature.v,
@@ -168,7 +167,7 @@ export function hash(parameters: any, exchange: Contract): string {
     },
     message: parameters,
   };
-  
+
   const _version = SignTypedDataVersion.V4;
   const _hash = eip712Hash(_data, _version);
 
@@ -200,7 +199,7 @@ export function hashWithDomain(parameters: any, exchange: Contract, chainId: num
     },
     message: parameters,
   };
-  
+
   const _version = SignTypedDataVersion.V4;
   const _hash = eip712Hash(_data, _version);
 
