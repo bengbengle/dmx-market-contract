@@ -38,7 +38,6 @@ const getSetupExchange = async (hre: any) => {
     return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT, mockERC20, };
 }
 
-
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
     const [admin] = await hre.ethers.getSigners();
@@ -54,17 +53,18 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     // const FROM_NFT_ID = 61; // 开始的 nft id
     // const END_NFT_ID = 91; // 结束的 nft id
 
-    const FROM_NFT_ID = 92; // 开始的 nft id
-    const END_NFT_ID = 102; // 结束的 nft id
+    const FROM_NFT_ID = 402; // 开始的 nft id
+    const END_NFT_ID = 500; // 结束的 nft id
 
     const USDT = '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
     const NFT_ADDRESS = '0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3'
-
-    const NFT_SELL_PRICE =  eth('1');
+    const NFT_SELL_PRICE =  eth('0.1');
 
     const _trader = new Trader(admin, exchange);
     for (let i = FROM_NFT_ID; i <= END_NFT_ID; i++) {
+        
         let tokenId = i.toString()
+        
         _trader.addOrder({
             tokenId: tokenId,
             collection: NFT_ADDRESS,
@@ -79,6 +79,7 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
             expirationTime: '1699697013', //2023-11-11 18:03:33
             extraParams: '0x'
         })
+
     }
 
     // 签名
