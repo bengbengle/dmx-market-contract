@@ -47,7 +47,7 @@ task('deploy-weth', 'Deploy mock nft').setAction(async (_, hre) => {
 
 });
 
-task('mint-nft', 'Mint mock nft').setAction(async (_, hre) => {
+task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 
   const [ admin, alice, bob] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
@@ -69,7 +69,7 @@ task('mint-nft', 'Mint mock nft').setAction(async (_, hre) => {
 
 });
 
-task('mint-weth', 'Mint mock nft').setAction(async (_, hre) => {
+task('mint-weth', 'mint-weth-mock').setAction(async (_, hre) => {
 
   const [admin, alice, bob] = await hre.ethers.getSigners();
   const { network, NETWORK, chainId } = getNetwork(hre);
@@ -85,7 +85,7 @@ task('mint-weth', 'Mint mock nft').setAction(async (_, hre) => {
 
 });
 
-task('set-weth', 'Deploy').setAction(async (_, hre) => {
+task('set-weth', 'set-weth').setAction(async (_, hre) => {
 
   const { network } = getNetwork(hre);
 
@@ -108,33 +108,6 @@ task('set-weth', 'Deploy').setAction(async (_, hre) => {
 
 });
 
-
-
-task('set-fee', 'Deploy').setAction(async (_, hre) => {
-
-  const { network } = getNetwork(hre);
-
-  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
-
-  // 交易所 logic 合约
-  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
-
-  console.log('exchangeImpl:', exchangeImpl.address);
-
-  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
-
-  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
-
-  const weth = await getAddress('MockERC20', network);
-
-  await exchange.setFeeRate(250)
-
-  let feerate = await exchange.feeRate()
-  console.log('feerate:', feerate.toString())
-  console.log('set-fee ....')
-
-
-});
 
 
 

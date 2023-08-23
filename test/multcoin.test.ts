@@ -18,10 +18,11 @@ describe('MultiCoinTests', function () {
 
     let exchange: DMXExchange;
     let executionDelegate: Contract;
+
     let admin: SignerWithAddress;
     let alice: SignerWithAddress;
     let bob: SignerWithAddress;
-    let thirdParty: SignerWithAddress;
+    // let thirdParty: SignerWithAddress;
     // standardPolicyERC721: StandardPolicyERC721;
 
     let weth: Contract;
@@ -37,24 +38,24 @@ describe('MultiCoinTests', function () {
     let tokenId: number = 0;
     let standardPolicyERC721: StandardPolicyERC721;
 
-    let aliceBalance: BigNumber;
-    let aliceUsdtBalance: BigNumber;
-    let aliceBalanceWeth: BigNumber;
-    let bobBalance: BigNumber;
-    let bobUsdtBalance: BigNumber;
-    let bobBalanceWeth: BigNumber;
-    let feeRecipientBalance: BigNumber;
-    let feeRecipientBalanceWeth: BigNumber;
+    // let aliceBalance: BigNumber;
+    // let aliceUsdtBalance: BigNumber;
+    // let aliceBalanceWeth: BigNumber;
+    // let bobBalance: BigNumber;
+    // let bobUsdtBalance: BigNumber;
+    // let bobBalanceWeth: BigNumber;
+    // let feeRecipientBalance: BigNumber;
+    // let feeRecipientBalanceWeth: BigNumber;
 
     const updateBalances = async () => {
-        aliceBalance = await alice.getBalance();
-        aliceUsdtBalance = await usdt.balanceOf(alice.address);
-        aliceBalanceWeth = await weth.balanceOf(alice.address);
-        bobBalance = await bob.getBalance();
-        bobUsdtBalance = await await usdt.balanceOf(bob.address);
-        bobBalanceWeth = await weth.balanceOf(bob.address);
-        feeRecipientBalance = await ethers.provider.getBalance(thirdParty.address);
-        feeRecipientBalanceWeth = await weth.balanceOf(thirdParty.address);
+        // aliceBalance = await alice.getBalance();
+        // aliceUsdtBalance = await usdt.balanceOf(alice.address);
+        // aliceBalanceWeth = await weth.balanceOf(alice.address);
+        // bobBalance = await bob.getBalance();
+        // bobUsdtBalance = await await usdt.balanceOf(bob.address);
+        // bobBalanceWeth = await weth.balanceOf(bob.address);
+        // feeRecipientBalance = await ethers.provider.getBalance(thirdParty.address);
+        // feeRecipientBalanceWeth = await weth.balanceOf(thirdParty.address);
     };
 
     before(async () => {
@@ -62,7 +63,7 @@ describe('MultiCoinTests', function () {
             admin,
             alice,
             bob,
-            thirdParty,
+            // thirdParty,
             weth,
             testNFT: testNFT,
             exchange,

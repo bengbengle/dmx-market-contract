@@ -93,7 +93,7 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     })
     const list_order = { sale_nft_new: _orders }
 
-    // console.log('_orders:', JSON.stringify(list_order));
+    console.log('_orders:', JSON.stringify(list_order));
 
     // 批量上架
     await listing(_token, list_order)

@@ -78,7 +78,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     string public constant name = "DMX Exchange";
     string public constant version = "1.0";
     uint256 public constant INVERSE_BASIS_POINT = 10000;
-    uint256 private constant MAX_FEE_RATE = 250; // 250
+    uint256 public constant MAX_FEE_RATE = 1000; // 250
 
     /* Variables */
     IExecutionDelegate public executionDelegate;
@@ -174,6 +174,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
      * @param order Order to cancel
      */
     function cancelOrder(Order calldata order) public {
+
         /* Assert sender is authorized to cancel order. */
         require(msg.sender == order.trader, "Sender is authorized to cancel order");
 
@@ -231,7 +232,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
     function setFeeRate(uint256 _feeRate) external onlyOwner
     {
-        require(_feeRate <= MAX_FEE_RATE, "Fee cannot be more than 2.5%");
+        require(_feeRate <= MAX_FEE_RATE, "Fee cannot be more than 10%");
         feeRate = _feeRate;
         emit NewFeeRate(feeRate);
     }

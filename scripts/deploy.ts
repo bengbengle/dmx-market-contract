@@ -4,6 +4,7 @@ import { getAddress, getContract, updateAddresses } from './utils';
 import { deploy, getAddressEnv, getNetwork } from './web3-utils';
 import { SetupExchangeResult } from '../exchange';
 import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typechain-types';
+import { assert } from 'console';
 
 // import 'isomorphic-fetch';
 
@@ -11,6 +12,7 @@ const DMXExchange_ContractName = 'DMXExchange'; //'DMXExchange';
 // const ERC1967Proxy_ContractName = 'ERC1967Proxy';
 
 export async function deployFull(hre: any, exchangeName: string): Promise<SetupExchangeResult> {
+  
   // 1. 代理合约
   const executionDelegate = await deploy(hre, 'ExecutionDelegate') as ExecutionDelegate;
   // 2. 策略管理
@@ -39,11 +41,12 @@ export async function deployFull(hre: any, exchangeName: string): Promise<SetupE
   return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 } };
 }
 
-export async function deployFullTest(hre: any): Promise<SetupExchangeResult> {
-  return deployFull(hre, DMXExchange_ContractName);
-}
+// export async function deployFullTest(hre: any): Promise<SetupExchangeResult> {
+//   return deployFull(hre, DMXExchange_ContractName);
+// }
 
 task('deploy', 'Deploy').setAction(async (_, hre) => {
+
   const [admin] = await hre.ethers.getSigners();
   const { network } = getNetwork(hre);
 
@@ -53,6 +56,7 @@ task('deploy', 'Deploy').setAction(async (_, hre) => {
   await deployFull(hre, DMXExchange_ContractName);
 
   updateAddresses(network);
+
 });
 
 task('upgrade', 'Upgrade').setAction(async (_, hre) => {
@@ -96,6 +100,70 @@ task('verify', 'verify').setAction(async (_, hre) => {
   await run(`verify:verify`, { address: _policy721, constructorArguments: [] });
   await run(`verify:verify`, { address: _impl, constructorArguments: [] });
   await run(`verify:verify`, { address: _exchangeProxy, constructorArguments: [_impl, initialize] });
+});
+
+
+task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {
+
+  const { network } = getNetwork(hre);
+
+  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+
+  // 交易所 logic 合约
+  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+
+  console.log('exchangeImpl:', exchangeImpl.address);
+
+  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+
+  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
+
+  // const weth = await getAddress('MockERC20', network);
+
+  let max_feeRate = await exchange.MAX_FEE_RATE()
+
+  console.log('max_feeRate:', max_feeRate.toString())
+  console.log('max_feeRate:', max_feeRate.toNumber())
+
+  let new_feeRate = 200
+
+  assert(max_feeRate.toNumber() >= new_feeRate, `max_feeRate must be greater than ${new_feeRate}`)
+
+  const tx = await exchange.setFeeRate(new_feeRate)
+
+  await tx.wait()
+
+  let feerate = await exchange.feeRate()
+  console.log('feerate:', feerate.toString())
+  console.log('set-fee ....')
+
+
+});
+
+task('setFeeRecipient', 'setFeeRecipient').setAction(async (_, hre) => {
+
+  const { network } = getNetwork(hre);
+  const [admin] = await hre.ethers.getSigners();
+
+  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+
+  // 交易所 logic 合约
+  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+
+  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+
+  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
+
+  console.log('DMXExchangeProxy:', exchange.address);
+
+  const tx = await exchange.setFeeRecipient(admin.address)
+
+  await tx.wait()
+
+  let _feeRecipient = await exchange.feeRecipient()
+
+  console.log('FeeRecipient:', _feeRecipient.toString())
+
 });
 
 export async function delay(ms: number) {

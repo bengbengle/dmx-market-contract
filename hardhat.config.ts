@@ -11,7 +11,7 @@ import { resolve } from 'path';
 import { ethers } from "ethers"
 
 import './scripts/deploy'
-import './scripts/mock'
+import './scripts/tasks'
 import './scripts/execution'
 import './scripts/packbulk'
 import './scripts/batchlisting'
@@ -26,11 +26,11 @@ task("accounts", "accounts", async () => {
 
 const chainIds = {
   goerli: 5,
-  hardhat: 31337,
-  kovan: 42,
   mainnet: 1,
-  rinkeby: 4,
-  ropsten: 3,
+  // hardhat: 31337,
+  // kovan: 42,
+  // rinkeby: 4,
+  // ropsten: 3,
 };
 
 const mnemonic: string | undefined = process.env.MNEMONIC;
