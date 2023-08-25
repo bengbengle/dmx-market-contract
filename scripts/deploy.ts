@@ -102,7 +102,6 @@ task('verify', 'verify').setAction(async (_, hre) => {
   await run(`verify:verify`, { address: _exchangeProxy, constructorArguments: [_impl, initialize] });
 });
 
-
 task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {
 
   const { network } = getNetwork(hre);
@@ -164,6 +163,34 @@ task('setFeeRecipient', 'setFeeRecipient').setAction(async (_, hre) => {
 
   console.log('FeeRecipient:', _feeRecipient.toString())
 
+});
+ 
+task('approvedContract', 'approvedContract').setAction(async (_, hre) => {
+
+  const { network } = getNetwork(hre);
+  const [admin] = await hre.ethers.getSigners();
+
+  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+
+  // 交易所 logic 合约
+  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+  const executionDelegate =  await getContract(hre, 'ExecutionDelegate');
+
+  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
+
+  // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
+  let isApprovedContract_pre = await executionDelegate.contracts(exchange.address);
+  
+  console.log('isApprovedContract_pre:', isApprovedContract_pre);
+
+  if(!isApprovedContract_pre) {
+      let tx = await executionDelegate.approveContract(exchange.address)
+      await tx.wait();
+
+      isApprovedContract_pre = await executionDelegate.contracts(exchange.address);
+  }
+  console.log('isApprovedContract_post:', isApprovedContract_pre);
 });
 
 export async function delay(ms: number) {

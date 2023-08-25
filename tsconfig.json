@@ -16,7 +16,7 @@
     "strict": true,
     "target": "es6"
   },
-  "include": ["*.ts", "**/*.ts", "artifacts/*.json"],
+  "include": ["*.ts", "**/*.ts", "artifacts/*.json", "scripts"],
   "files": ["./hardhat.config.ts", "./modules.d.ts"],
   "exclude": ["./build", "node_modules"]
 }
