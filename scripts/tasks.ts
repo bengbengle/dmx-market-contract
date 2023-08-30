@@ -50,7 +50,6 @@ task('deploy-weth', 'Deploy mock nft').setAction(async (_, hre) => {
 task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 
   const [ admin, alice, bob] = await hre.ethers.getSigners();
-  const { network, NETWORK, chainId } = getNetwork(hre);
 
   const testNFT = await getContract(hre, 'MockERC721');
 
@@ -72,7 +71,6 @@ task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 task('mint-weth', 'mint-weth-mock').setAction(async (_, hre) => {
 
   const [admin, alice, bob] = await hre.ethers.getSigners();
-  const { network, NETWORK, chainId } = getNetwork(hre);
 
   const mockERC20 = await getContract(hre, 'MockERC20');
 

@@ -18,36 +18,42 @@ import './scripts/batchlisting'
 
 dotenvConfig({ path: resolve(__dirname, './.env') });
 
-task("accounts", "accounts", async () => {
+
+const chainIds = {
+  goerli: 5,
+  mainnet: 1,
+  sepolia:11155111
+};
+
+const CHAIN_ID: string = process.env.CHAIN_ID || "";
+
+if (!CHAIN_ID) {
+  throw new Error('Please set your CHAIN_ID in a .env file');
+}
+
+// Ensure that we have all the environment variables we need.
+const PRIVATE_KEYS: string = process.env.PRIVATE_KEYS || "";
+
+const mnemonic: string | undefined = process.env.MNEMONIC;
+if (!mnemonic || !PRIVATE_KEYS) {
+  throw new Error('Please set your PRIVATE_KEYS in a .env file');
+}
+const accounts = PRIVATE_KEYS.split(',');
+
+
+
+task("verions", "versions", async () => {
   let version = ethers.version
   console.log('version::', version);
 });
 
 
-const chainIds = {
-  goerli: 5,
-  mainnet: 1,
-  // hardhat: 31337,
-  // kovan: 42,
-  // rinkeby: 4,
-  // ropsten: 3,
-};
-
-const mnemonic: string | undefined = process.env.MNEMONIC;
-if (!mnemonic) {
-  throw new Error('Please set your MNEMONIC in a .env file');
-}
-
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`;
   return {
-    accounts: {
-      count: 10,
-      mnemonic: process.env.DEPLOYER_MNEMONIC,
-      path: "m/44'/60'/0'/0",
-    },
+    accounts,
     chainId: chainIds[network],
-    url: url,
+    url,
     gasMultiplier: 1.5,
   };
 }
@@ -57,12 +63,13 @@ const config: HardhatUserConfig = {
   networks: {
     goerli: getChainConfig('goerli'),
     mainnet: getChainConfig('mainnet'),
+    sepolia: getChainConfig('sepolia'),
     localhost: {
       url: 'http://127.0.0.1:8545',
       chainId: 1,
     },
     hardhat: {
-      chainId: 5,
+      chainId: parseInt(CHAIN_ID),
       accounts: {
         count: 10,
         mnemonic: process.env.MNEMONIC,
@@ -86,12 +93,6 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  // paths: {
-  //   artifacts: './artifacts',
-  //   cache: './cache',
-  //   sources: './contracts',
-  //   tests: './tests',
-  // },
   gasReporter: {
     enabled: true,
     coinmarketcap: "12cc6805-d3a2-4bed-85e6-fe3119b41877",

@@ -77,7 +77,7 @@ task('upgrade', 'Upgrade').setAction(async (_, hre) => {
 
 task('verify', 'verify').setAction(async (_, hre) => {
   const [admin] = await hre.ethers.getSigners();
-  const { network, NETWORK, chainId } = getNetwork(hre);
+  const { network} = getNetwork(hre);
   const { run } = hre
   console.log(`Calling on ${network}`);
   console.log(`Calling from: ${(await admin.getAddress()).toString()}`);

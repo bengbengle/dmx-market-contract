@@ -38,32 +38,12 @@ describe('MultiCoinTests', function () {
     let tokenId: number = 0;
     let standardPolicyERC721: StandardPolicyERC721;
 
-    // let aliceBalance: BigNumber;
-    // let aliceUsdtBalance: BigNumber;
-    // let aliceBalanceWeth: BigNumber;
-    // let bobBalance: BigNumber;
-    // let bobUsdtBalance: BigNumber;
-    // let bobBalanceWeth: BigNumber;
-    // let feeRecipientBalance: BigNumber;
-    // let feeRecipientBalanceWeth: BigNumber;
-
-    const updateBalances = async () => {
-        // aliceBalance = await alice.getBalance();
-        // aliceUsdtBalance = await usdt.balanceOf(alice.address);
-        // aliceBalanceWeth = await weth.balanceOf(alice.address);
-        // bobBalance = await bob.getBalance();
-        // bobUsdtBalance = await await usdt.balanceOf(bob.address);
-        // bobBalanceWeth = await weth.balanceOf(bob.address);
-        // feeRecipientBalance = await ethers.provider.getBalance(thirdParty.address);
-        // feeRecipientBalanceWeth = await weth.balanceOf(thirdParty.address);
-    };
-
+  
     before(async () => {
         ({
             admin,
             alice,
             bob,
-            // thirdParty,
             weth,
             testNFT: testNFT,
             exchange,
@@ -108,9 +88,8 @@ describe('MultiCoinTests', function () {
 
     
 
-    it('check the single order is valid', async () => {
+    it('check the single order is valid, sell, buy', async () => {
 
-        await updateBalances();
         tokenId = tokenId + 1;
         await testNFT.mint(alice.address, tokenId);
 
@@ -121,8 +100,6 @@ describe('MultiCoinTests', function () {
 
         sellInput = await sell.pack({ signer: alice });
         buyInput = await buy.pack();
-
-
 
         console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
         console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
@@ -145,7 +122,6 @@ describe('MultiCoinTests', function () {
 
     it('check the bulk sell order is valid', async () => {
         
-        await updateBalances();
         await testNFT.mint(alice.address, 5);
         await testNFT.mint(alice.address, 6);
         await testNFT.mint(alice.address, 7);

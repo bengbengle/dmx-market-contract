@@ -120,9 +120,8 @@ export async function deploy(
   // console.log(`Deploying: ${name}...`);
   const contractFactory = await hre.ethers.getContractFactory(name, options);
   const contract = await contractFactory.deploy(...calldata);
-  // console.log('hre.network.name:', hre.network.name, hre.network.config.chainId);
   save(saveName || name, contract, hre.network.name);
-  // console.log(`Deployed: ${name} to: ${contract.address}`);
+  console.log(`Deployed: ${name} to: ${contract.address}`);
   await contract.deployed();
   return contract;
 }

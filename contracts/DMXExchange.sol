@@ -161,9 +161,49 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
 
             bytes memory data = abi.encodeWithSelector(this._execute.selector, executions[i].sell, executions[i].buy);
 
-            (bool success, bytes memory result) = address(this).delegatecall(data);
+            (bool success, bytes memory returndata) = address(this).delegatecall(data);
 
-            if(!success) revert(string(result));
+            if (success) {
+                // return returndata;
+            } else {
+                if (returndata.length > 0) {
+                    assembly {
+                        let returndata_size := mload(returndata)
+                        revert(add(32, returndata), returndata_size)
+                    }
+                } 
+            }
+        }
+
+        _returnDust();
+    }
+
+    function fullFillExecute(Execution[] calldata executions)
+        external
+        payable
+        whenOpen
+        setupExecution
+    {
+        uint256 executionsLength = executions.length;
+
+        if (executionsLength == 0) revert("No orders to execute");
+
+        for (uint8 i = 0; i < executionsLength; i++) {
+
+            bytes memory data = abi.encodeWithSelector(this._execute.selector, executions[i].sell, executions[i].buy);
+
+            (bool success, bytes memory returndata) = address(this).delegatecall(data);
+
+            if (success) {
+                // return returndata;
+            } else {
+                if (returndata.length > 0) {
+                    assembly {
+                        let returndata_size := mload(returndata)
+                        revert(add(32, returndata), returndata_size)
+                    }
+                } 
+            }
         }
 
         _returnDust();

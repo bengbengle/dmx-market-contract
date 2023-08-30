@@ -4,7 +4,20 @@ import { OrderParameters, OrderWithNonce, TypedData } from './utils';
 
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util';
 
-const CHAIN_ID = 5;
+import { parse, resolve } from 'path';
+import { config as dotenvConfig } from 'dotenv';
+
+dotenvConfig({ path: resolve(__dirname, '../.env') });
+
+console.log("resolve(__dirname, '.env')", resolve(__dirname, '.env'))
+
+const CHAIN_ID: string = process.env.CHAIN_ID || "";
+
+if (!CHAIN_ID) {
+  throw new Error('Please set your CHAIN_ID in a .env file');
+}
+
+console.log('ChainId::', CHAIN_ID);
 
 const {
   eip712Hash,
@@ -53,7 +66,7 @@ function structToSign(order: OrderWithNonce, exchange: string): TypedData {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: CHAIN_ID,
+      chainId: parseInt(CHAIN_ID),
       verifyingContract: exchange,
     },
     data: order,
@@ -164,7 +177,7 @@ export function hash(parameters: any, exchange: Contract): string {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: CHAIN_ID,
+      chainId: parseInt(CHAIN_ID),
       verifyingContract: exchange.address,
     },
     message: parameters,
@@ -196,7 +209,7 @@ export function hashWithDomain(parameters: any, exchange: Contract): string {
     domain: {
       name: 'DMX Exchange',
       version: '1.0',
-      chainId: CHAIN_ID,
+      chainId: parseInt(CHAIN_ID),
       verifyingContract: exchange.address,
     },
     message: parameters,
