@@ -22,7 +22,16 @@
     "verify:sepolia": "hardhat verify --network sepolia",
     "upgrade:sepolia": "yarn compile && hardhat upgrade --network sepolia",
     "task:sepolia": "hardhat --network sepolia",
-    "setfee:sepolia": "hardhat set-fee --network sepolia"
+    "setfee:sepolia": "hardhat set-fee --network sepolia",
+    
+
+    
+    "deploy:mainnet": "hardhat deploy --network mainnet",
+    "verify:mainnet": "hardhat verify --network mainnet",
+    "upgrade:mainnet": "yarn compile && hardhat upgrade --network mainnet",
+    "task:mainnet": "hardhat --network sepolia",
+    "setfee:mainnet": "hardhat set-fee --network mainnet"
+    
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",

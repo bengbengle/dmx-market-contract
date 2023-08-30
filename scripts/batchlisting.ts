@@ -44,23 +44,23 @@ const FEE_Rate = 300
 
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
-    const [ admin ] = await hre.ethers.getSigners();
+    const [ admin, seller ] = await hre.ethers.getSigners();
     const { exchange, matchingPolicies, executionDelegate, testNFT } = await getSetupExchange(hre);
     const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
 
-    const _login_nonce: string = await get_login_nonce(admin.address);
-    const _login_sig = await admin.signMessage(_login_nonce);
-    const _token = await login(admin.address, _login_sig);
+    const _login_nonce: string = await get_login_nonce(seller.address);
+    const _login_sig = await seller.signMessage(_login_nonce);
+    const _token = await login(seller.address, _login_sig);
 
-     // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
-     let isApprovedContract = await executionDelegate.contracts(exchange.address);
-     if(!isApprovedContract) {
-        let tx = await executionDelegate.approveContract(exchange.address)
-        await tx.wait();
+    //  // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
+    //  let isApprovedContract = await executionDelegate.contracts(exchange.address);
+    //  if(!isApprovedContract) {
+    //     let tx = await executionDelegate.approveContract(exchange.address)
+    //     await tx.wait();
 
-        isApprovedContract = await executionDelegate.contracts(exchange.address);
-     }
-     console.log('isApprovedContract:', isApprovedContract)
+    //     isApprovedContract = await executionDelegate.contracts(exchange.address);
+    //  }
+    //  console.log('isApprovedContract:', isApprovedContract)
  
      // Verify 2. 如果没有授权，需要授权
      let _isApprovedForAll = await testNFT.connect(admin).isApprovedForAll(admin.address, executionDelegate.address);
