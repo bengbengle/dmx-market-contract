@@ -44,7 +44,7 @@ const FEE_Rate = 300
 
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
-    const [ admin, seller ] = await hre.ethers.getSigners();
+    const [ _admin, seller ] = await hre.ethers.getSigners();
     const { exchange, matchingPolicies, executionDelegate, testNFT } = await getSetupExchange(hre);
     const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
 
@@ -63,15 +63,15 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     //  console.log('isApprovedContract:', isApprovedContract)
  
      // Verify 2. 如果没有授权，需要授权
-     let _isApprovedForAll = await testNFT.connect(admin).isApprovedForAll(admin.address, executionDelegate.address);
+     let _isApprovedForAll = await testNFT.connect(seller).isApprovedForAll(seller.address, executionDelegate.address);
      if(!_isApprovedForAll) {
-        let tx = await testNFT.connect(admin).setApprovalForAll(executionDelegate.address, true);
+        let tx = await testNFT.connect(seller).setApprovalForAll(executionDelegate.address, true);
         await tx.wait();
     }
     console.log('_isApprovedForAll:', _isApprovedForAll)
 
 
-    const _trader = new Trader(admin, exchange);
+    const _trader = new Trader(seller, exchange);
     for (let i = FROM_NFT_ID; i <= END_NFT_ID; i++) {
 
         let tokenId = i.toString()
@@ -99,7 +99,7 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     }
 
     // 签名
-    const nonce = await exchange.nonces(admin.address)
+    const nonce = await exchange.nonces(seller.address)
     const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
     const _orders = await _trader.bulkSigs(blocknumber as number, nonce)
 
@@ -109,7 +109,6 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     })
 
     const list_order = { sale_nft_new: _orders }
-    // console.log('_orders:', JSON.stringify(list_order));
 
     // 批量上架
     await listing(_token, list_order);  
