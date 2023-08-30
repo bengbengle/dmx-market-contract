@@ -44,7 +44,7 @@ const FEE_Rate = 300
 
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
-    const [admin] = await hre.ethers.getSigners();
+    const [ admin ] = await hre.ethers.getSigners();
     const { exchange, matchingPolicies, executionDelegate, testNFT } = await getSetupExchange(hre);
     const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
 

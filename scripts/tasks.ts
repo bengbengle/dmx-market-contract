@@ -8,20 +8,19 @@ import { deploy, getNetwork,
 
 task('deploy-nft', 'Deploy mock nft').setAction(async (_, hre) => {
 
-  const [admin, alice, bob] = await hre.ethers.getSigners();
+  const [admin, alice] = await hre.ethers.getSigners();
   const { network } = getNetwork(hre);
 
   console.log(`Deploying exchange on ${network}`);
   console.log(`Deploying from: ${(await admin.getAddress()).toString()}`);
 
   // 1. MockERC721
-  const testNFT = (await deploy(hre, 'MockERC721')) as any;
+  const testNFT = (await deploy(hre, 'MockERC721', ['MockNFT', 'MockNFT'])) as any;
 
   const totalSupply = await testNFT.totalSupply();
   const tokenId = totalSupply.toNumber() + 1;
 
   await testNFT.mint(alice.address, tokenId);
-  await testNFT.mint(bob.address, tokenId + 1);
 
   console.log('testNFT:', testNFT.address);
   console.log('tokenId:', tokenId);
@@ -32,14 +31,13 @@ task('deploy-nft', 'Deploy mock nft').setAction(async (_, hre) => {
 
 task('deploy-weth', 'Deploy mock nft').setAction(async (_, hre) => {
 
-  const [admin, alice, bob] = await hre.ethers.getSigners();
+  const [admin, alice] = await hre.ethers.getSigners();
   const { network } = getNetwork(hre);
 
   // 1. mockERC20
   const mockERC20 = (await deploy(hre, 'MockERC20')) as any;
 
   await mockERC20.mint(alice.address, 100000000);
-  await mockERC20.mint(bob.address, 100000000);
 
   const totalSupply = await mockERC20.totalSupply();
   console.log('totalSupply:', totalSupply.toString());
@@ -50,7 +48,7 @@ task('deploy-weth', 'Deploy mock nft').setAction(async (_, hre) => {
 
 task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 
-  const [ admin, alice, bob] = await hre.ethers.getSigners();
+  const [ admin, alice] = await hre.ethers.getSigners();
 
   const testNFT = await getContract(hre, 'MockERC721');
 
@@ -71,12 +69,11 @@ task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 
 task('mint-weth', 'mint-weth-mock').setAction(async (_, hre) => {
 
-  const [admin, alice, bob] = await hre.ethers.getSigners();
+  const [admin, alice] = await hre.ethers.getSigners();
 
   const mockERC20 = await getContract(hre, 'MockERC20');
 
   await mockERC20.mint(alice.address, 100000000);
-  await mockERC20.mint(bob.address, 100000000);
 
   const totalSupply = await mockERC20.totalSupply();
   console.log('totalSupply:', totalSupply.toString());

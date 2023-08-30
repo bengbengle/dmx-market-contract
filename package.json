@@ -18,11 +18,11 @@
     "task:goerli": "hardhat --network goerli",
     "setfee:goerli": "hardhat set-fee --network goerli",
 
-    "deploy:linea": "hardhat deploy --network 'linea-goerli'",
-    "verify:linea": "hardhat verify --network 'linea-goerli'",
-    "upgrade:linea": "yarn compile && hardhat upgrade --network 'linea-goerli'",
-    "task:linea": "hardhat --network 'linea-goerli'",
-    "setfee:linea": "hardhat set-fee --network 'linea-goerli'"
+    "deploy:sepolia": "hardhat deploy --network sepolia",
+    "verify:sepolia": "hardhat verify --network sepolia",
+    "upgrade:sepolia": "yarn compile && hardhat upgrade --network sepolia",
+    "task:sepolia": "hardhat --network sepolia",
+    "setfee:sepolia": "hardhat set-fee --network sepolia"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",

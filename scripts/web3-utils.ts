@@ -15,7 +15,7 @@ const contractVariables: Record<string, string> = {
   MerkleVerifier: 'MERKLE_VERIFIER',
   DMXExchangeProxy: 'DMXExchangeProxy',
 
-  // MockERC721: 'MockERC721', 
+  MockERC721: 'MockERC721',
   // MockERC20: 'MockERC20',
 };
 
@@ -45,9 +45,12 @@ function _save(name: string, contract: any, network: string) {
 
 // 获取合约地址
 function _load(name: string, network: string) {
-  const { address } = JSON.parse(
-    fs.readFileSync(`${DEPLOYMENTS_DIR}/${network}/${name}.json`).toString(),
-  );
+  const file = `${DEPLOYMENTS_DIR}/${network}/${name}.json`
+  if (!fs.existsSync(file)) {
+    fs.writeFileSync(file, JSON.stringify({ }, null, 4));
+  }
+  const { address } = JSON.parse(fs.readFileSync(file).toString());
+  
   return address;
 }
 
