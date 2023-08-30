@@ -157,7 +157,7 @@ task('setFeeRecipient', 'setFeeRecipient').setAction(async (_, hre) => {
 
   console.log('DMXExchangeProxy:', exchange.address);
 
-  const tx = await exchange.setFeeRecipient(admin.address)
+  const tx = await exchange.setFeeRecipient('0x51eFBd7e4f9e31Adf496977D9317D6111017a78B')
 
   await tx.wait()
 
