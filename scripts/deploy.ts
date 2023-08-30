@@ -108,10 +108,10 @@ task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {
 
   const { network } = getNetwork(hre);
 
-  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+//  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
 
   // 交易所 logic 合约
-  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+  const exchangeImpl = await getContract(hre, 'DMXExchange');
 
   console.log('exchangeImpl:', exchangeImpl.address);
 
@@ -126,7 +126,7 @@ task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {
   console.log('max_feeRate:', max_feeRate.toString())
   console.log('max_feeRate:', max_feeRate.toNumber())
 
-  let new_feeRate = 200
+  let new_feeRate = 250
 
   assert(max_feeRate.toNumber() >= new_feeRate, `max_feeRate must be greater than ${new_feeRate}`)
 
@@ -144,12 +144,12 @@ task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {
 task('setFeeRecipient', 'setFeeRecipient').setAction(async (_, hre) => {
 
   const { network } = getNetwork(hre);
-  const [admin] = await hre.ethers.getSigners();
+  // const [admin] = await hre.ethers.getSigners();
 
-  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+  // const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
 
   // 交易所 logic 合约
-  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+  const exchangeImpl = await getContract(hre, 'DMXExchange');
 
   const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
 
@@ -170,12 +170,12 @@ task('setFeeRecipient', 'setFeeRecipient').setAction(async (_, hre) => {
 task('approvedContract', 'approvedContract').setAction(async (_, hre) => {
 
   const { network } = getNetwork(hre);
-  const [admin] = await hre.ethers.getSigners();
+  // const [admin] = await hre.ethers.getSigners();
 
-  const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
+  // const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
 
   // 交易所 logic 合约
-  const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+  const exchangeImpl = await getContract(hre, 'DMXExchange');
   const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
   const executionDelegate =  await getContract(hre, 'ExecutionDelegate');
 

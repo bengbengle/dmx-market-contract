@@ -29,8 +29,10 @@
     "deploy:mainnet": "hardhat deploy --network mainnet",
     "verify:mainnet": "hardhat verify --network mainnet",
     "upgrade:mainnet": "yarn compile && hardhat upgrade --network mainnet",
-    "task:mainnet": "hardhat --network sepolia",
-    "setfee:mainnet": "hardhat set-fee --network mainnet"
+    "task:mainnet": "hardhat --network mainnet",
+    "setfee:mainnet": "hardhat setFeeRate --network mainnet",
+
+    "setFeeRecipient:mainnet": "hardhat setFeeRecipient --network mainnet"
     
   },
   "devDependencies": {
