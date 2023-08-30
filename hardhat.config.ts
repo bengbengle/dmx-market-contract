@@ -22,7 +22,8 @@ dotenvConfig({ path: resolve(__dirname, './.env') });
 const chainIds = {
   goerli: 5,
   mainnet: 1,
-  sepolia:11155111
+  sepolia: 11155111,
+  'linea-goerli': 59140,
 };
 
 const CHAIN_ID: string = process.env.CHAIN_ID || "";
@@ -38,9 +39,8 @@ const mnemonic: string | undefined = process.env.MNEMONIC;
 if (!mnemonic || !PRIVATE_KEYS) {
   throw new Error('Please set your PRIVATE_KEYS in a .env file');
 }
+
 const accounts = PRIVATE_KEYS.split(',');
-
-
 
 task("verions", "versions", async () => {
   let version = ethers.version
@@ -64,6 +64,7 @@ const config: HardhatUserConfig = {
     goerli: getChainConfig('goerli'),
     mainnet: getChainConfig('mainnet'),
     sepolia: getChainConfig('sepolia'),
+    'linea-goerli': getChainConfig("linea-goerli"),
     localhost: {
       url: 'http://127.0.0.1:8545',
       chainId: 1,

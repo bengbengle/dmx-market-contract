@@ -1,6 +1,5 @@
 import { task } from 'hardhat/config';
-import { getAddress, getContract } from './utils';
-import { getNetwork } from './web3-utils';
+import { getAddress, getContract, getNetwork } from './web3-utils';
 
 import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 

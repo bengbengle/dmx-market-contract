@@ -9,13 +9,20 @@
     "test": "hardhat test",
     "compile": "hardhat compile",
     "build": "hardhat compile",
+    "deploy": "yarn compile && hardhat deploy",
     "run_upgrade": "hardhat upgrade",
+
     "deploy:goerli": "hardhat deploy --network goerli",
     "verify:goerli": "hardhat verify --network goerli",
-    "deploy": "yarn compile && hardhat deploy",
     "upgrade:goerli": "yarn compile && hardhat upgrade --network goerli",
-    "task": "hardhat --network goerli",
-    "setfee": "hardhat set-fee --network goerli"
+    "task:goerli": "hardhat --network goerli",
+    "setfee:goerli": "hardhat set-fee --network goerli",
+
+    "deploy:linea": "hardhat deploy --network 'linea-goerli'",
+    "verify:linea": "hardhat verify --network 'linea-goerli'",
+    "upgrade:linea": "yarn compile && hardhat upgrade --network 'linea-goerli'",
+    "task:linea": "hardhat --network 'linea-goerli'",
+    "setfee:linea": "hardhat set-fee --network 'linea-goerli'"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.11",

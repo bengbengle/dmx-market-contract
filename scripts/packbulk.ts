@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
-import { getAddress, getContract } from './utils';
-import { getNetwork, waitForTx } from './web3-utils';
+// import { getAddress, getContract } from './utils';
+import { getNetwork, waitForTx, getAddress, getContract } from './web3-utils';
 
 import { eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 

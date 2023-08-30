@@ -1,9 +1,10 @@
 import { task } from 'hardhat/config';
 
-import { getAddress, getContract, updateAddresses } from './utils';
-import { deploy, getAddressEnv, getNetwork, waitForTx } from './web3-utils';
+// import { getAddress, getContract, updateAddresses } from './utils';
+import { deploy, getNetwork, 
+  getAddress, getContract, updateAddresses } from './web3-utils';
 
-const DMXExchange_ContractName = 'DMXExchange';
+// const DMXExchange_ContractName = 'DMXExchange';
 
 task('deploy-nft', 'Deploy mock nft').setAction(async (_, hre) => {
 

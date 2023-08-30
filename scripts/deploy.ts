@@ -1,15 +1,16 @@
 import { task } from 'hardhat/config';
 import { Contract } from 'ethers';
-import { getAddress, getContract, updateAddresses } from './utils';
-import { deploy, getAddressEnv, getNetwork } from './web3-utils';
+import { getAddress, getContract, updateAddresses } from './web3-utils';
+import { deploy, getNetwork } from './web3-utils';
 import { SetupExchangeResult } from '../exchange';
 import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typechain-types';
 import { assert } from 'console';
 
 // import 'isomorphic-fetch';
 
-const DMXExchange_ContractName = 'DMXExchange'; //'DMXExchange';
-// const ERC1967Proxy_ContractName = 'ERC1967Proxy';
+const DMXExchange_ContractName = 'DMXExchange'; 
+// DMXExchange;
+// const ERC1967ProxyContractName = 'ERC1967Proxy';
 
 export async function deployFull(hre: any, exchangeName: string): Promise<SetupExchangeResult> {
   
@@ -51,6 +52,7 @@ task('deploy', 'Deploy').setAction(async (_, hre) => {
   const { network } = getNetwork(hre);
 
   console.log(`Deploying exchange on ${network}`);
+  
   console.log(`Deploying from: ${(await admin.getAddress()).toString()}`);
 
   await deployFull(hre, DMXExchange_ContractName);
@@ -90,16 +92,16 @@ task('verify', 'verify').setAction(async (_, hre) => {
 
   const initializeInterface = new hre.ethers.utils.Interface(['function initialize(address, address)']);
   const initialize = initializeInterface.encodeFunctionData('initialize', [_delegate, _policyMG]);
-  const _exchangeProxy = getAddress('DMXExchangeProxy', network);
+  const dmxExchangeProxy = getAddress('DMXExchangeProxy', network);
 
-  console.log('_exchangeProxy:', _exchangeProxy);
+  console.log('Verify DMXExchangeProxy:', dmxExchangeProxy);
 
   await run(`verify:verify`, { address: _delegate, constructorArguments: [] });
   await run(`verify:verify`, { address: _policyMG, constructorArguments: [] });
   await run(`verify:verify`, { address: _merkle, constructorArguments: [] });
   await run(`verify:verify`, { address: _policy721, constructorArguments: [] });
   await run(`verify:verify`, { address: _impl, constructorArguments: [] });
-  await run(`verify:verify`, { address: _exchangeProxy, constructorArguments: [_impl, initialize] });
+  await run(`verify:verify`, { address: dmxExchangeProxy, constructorArguments: [_impl, initialize] });
 });
 
 task('setFeeRate', 'setFeeRate').setAction(async (_, hre) => {

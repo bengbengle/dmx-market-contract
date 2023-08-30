@@ -9,7 +9,6 @@ import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig({ path: resolve(__dirname, '../.env') });
 
-console.log("resolve(__dirname, '.env')", resolve(__dirname, '.env'))
 
 const CHAIN_ID: string = process.env.CHAIN_ID || "";
 
@@ -17,17 +16,9 @@ if (!CHAIN_ID) {
   throw new Error('Please set your CHAIN_ID in a .env file');
 }
 
-console.log('ChainId::', CHAIN_ID);
-
 const {
   eip712Hash,
-  hashStruct,
-
-  // encodeData,
-  // encodeType,
-  // findTypeDependencies,
-  // hashType,
-  // sanitizeData,
+  hashStruct
 } = TypedDataUtils;
 
 const eip712Fee = {

@@ -1,11 +1,11 @@
 import { task } from 'hardhat/config';
-import { getAddress, getContract } from './utils';
-import { getNetwork, waitForTx } from './web3-utils';
+// import { getAddress, getContract } from './utils';
+import { getNetwork, waitForTx, getAddress, getContract } from './web3-utils';
 
 import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 
 
-import { login, listing, get_nonce, sign } from './backendAPI'
+import { login, listing, get_nonce } from './backendAPI'
 import { BigNumber, ethers } from 'ethers';
 import { DMXExchange } from '../typechain-types';
 import { formatEther } from 'ethers/lib/utils';

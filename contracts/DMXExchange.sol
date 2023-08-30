@@ -178,7 +178,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         _returnDust();
     }
 
-    function fullFillExecute(Execution[] calldata executions)
+    function partialFillExecute(Execution[] calldata executions)
         external
         payable
         whenOpen

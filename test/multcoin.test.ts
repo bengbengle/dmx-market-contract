@@ -162,15 +162,7 @@ describe('MultiCoinTests', function () {
 
         const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
         const _sell_orders = await trader.bulkSigs(blocknumber as number, nonce)
-        
-
-
-
-
-
-
-        
-        
+         
         // console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
         // console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
         // let tx =  exchange.connect(bob).execute(sellInput, buyInput);
