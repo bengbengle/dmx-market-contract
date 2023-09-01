@@ -14,6 +14,7 @@ import { formatEther } from "ethers/lib/utils";
 import { DMXExchange, MockERC20, StandardPolicyERC721, } from "../typechain-types";
 
 const { ethers } = hre;
+
 describe('MultiCoinTests', function () {
 
     let exchange: DMXExchange;
@@ -22,8 +23,6 @@ describe('MultiCoinTests', function () {
     let admin: SignerWithAddress;
     let alice: SignerWithAddress;
     let bob: SignerWithAddress;
-    // let thirdParty: SignerWithAddress;
-    // standardPolicyERC721: StandardPolicyERC721;
 
     let weth: Contract;
     let usdt: Contract;
@@ -96,7 +95,12 @@ describe('MultiCoinTests', function () {
         const price = eth('100');
 
         sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
-        buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: usdt.address, price });
+        buy = generateOrder(bob, { 
+            side: Side.Buy,
+            tokenId,
+            paymentToken: usdt.address,
+            price
+        });
 
         sellInput = await sell.pack({ signer: alice });
         buyInput = await buy.pack();
@@ -126,23 +130,15 @@ describe('MultiCoinTests', function () {
         await testNFT.mint(alice.address, 6);
         await testNFT.mint(alice.address, 7);
         await testNFT.mint(alice.address, 8);
-
-        const price = eth('100');
-
-        sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
-        buy = generateOrder(bob, { side: Side.Buy, tokenId, paymentToken: usdt.address, price });
-
+ 
         sellInput = await sell.pack({ signer: alice });
-        buyInput = await buy.pack();
 
-        // standardPolicyERC721
-
-        let trader = new Trader(admin, exchange );
-        for(let i = 25; i <= 25; i++ ) {
+        let maker = new Trader(admin, exchange );
+        for(let i = 1; i <= 5; i++ ) {
 
             let tokenId = i.toString()
     
-            trader.addOrder({
+            maker.addOrder({
                 tokenId: tokenId,
                 matchingPolicy: standardPolicyERC721.address, // '0x7A6E1b14DcE51275300C3e5617F6891c78bFCEfb', 
                 collection: testNFT.address, // '0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3', 
@@ -158,24 +154,23 @@ describe('MultiCoinTests', function () {
         }
 
         const nonce = await exchange.nonces(admin.address)
-        console.log('nonce:', nonce);
 
         const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
-        const _sell_orders = await trader.bulkSigs(blocknumber as number, nonce)
-         
-        // console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
-        // console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
-        // let tx =  exchange.connect(bob).execute(sellInput, buyInput);
-        // console.log('tx:', tx);
-        // const pendingTx: TransactionResponse = await tx;
-        // const receipt = await pendingTx.wait();
-        // assert(receipt.status == 1, 'receipt.status is false');
-        // let alice_usdt = await usdt.balanceOf(alice.address)
-        // let bob_usdt = await usdt.balanceOf(bob.address)
-        // let admin_usdt = await usdt.balanceOf(admin.address)
+        
+        const listed = await maker.bulkSigs(blocknumber as number, nonce)
 
-        // assert(formatEther(alice_usdt.toString()) == '1097.0', 'alice_usdt is false');
-        // assert(formatEther(bob_usdt.toString()) == '900.0', 'bob_usdt is false');
-        // assert(formatEther(admin_usdt.toString()) == '3.0', 'admin_usdt is false');
+        let taker = new Trader(bob, exchange );
+
+        await taker.addOrder(
+            {
+                ...listed[0].order,
+                Side: Side.Buy,
+                trader: bob.address,
+            }
+        );
+        
+        await taker.bulkNoSigs(blocknumber);
+ 
     });
+
 });
