@@ -3,7 +3,7 @@ import { Contract } from 'ethers';
 import { getAddress, getContract, updateAddresses } from './web3-utils';
 import { deploy, getNetwork } from './web3-utils';
 import { SetupExchangeResult } from '../exchange';
-import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typechain-types';
+import { ExecutionDelegate, PolicyManager, StandardPolicyERC721, MockERC20 } from '../typechain-types';
 import { assert } from 'console';
 
 // import 'isomorphic-fetch';

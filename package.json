@@ -9,8 +9,13 @@
     "test": "hardhat test",
     "compile": "hardhat compile",
     "build": "hardhat compile",
+    "clean": "hardhat clean && rm -rf abi/ && rm -rf artifacts/ && rm -rf dist/ && rm -rf typechain/",
+    "typechain": "hardhat typechain",
     "deploy": "yarn compile && hardhat deploy",
     "run_upgrade": "hardhat upgrade",
+
+    "deployUSDT:goerli": "hardhat deployUSDT --network goerli",
+    "verifyUSDT:goerli": "hardhat verifyUSDT --network goerli",
 
     "deploy:goerli": "hardhat deploy --network goerli",
     "verify:goerli": "hardhat verify --network goerli",

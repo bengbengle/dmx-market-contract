@@ -11,4 +11,7 @@ contract MockERC20 is ERC20 {
         _mint(to, value);
         return true;
     }
+    function decimals() public pure override returns (uint8) {
+        return 6;
+    }
 }
