@@ -5,7 +5,7 @@ import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 
 import { BigNumber, ethers } from 'ethers';
 import { DMXExchange } from '../typechain-types';
-import { formatEther } from 'ethers/lib/utils';
+import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils';
 
 import { login, listing, get_nonce as get_login_nonce } from './backendAPI'
 
@@ -16,35 +16,45 @@ const getSetupExchange = async (hre: any) => {
     const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
 
     // 交易所 logic 合约
-    const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+    const exchangeImpl = await getContract(hre, 'DMXExchange');
+    console.log('sss:', exchangeImpl.address)
     const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
     const exchange: DMXExchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
     const executionDelegate = await getContract(hre, 'ExecutionDelegate');
     const standardPolicyERC721 = await getContract(hre, 'StandardPolicyERC721');
-
+    console.log('721sss', standardPolicyERC721.address)
     const testNFT = await getContract(hre, 'MockERC721');
-    const mockERC20 = await getContract(hre, 'MockERC20');
-    return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT, mockERC20 };
+    console.log(testNFT.address)
+    // const mockERC20 = await getContract(hre, 'MockERC20');
+    return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT };
     
 }
 
 
 // 开始的 NFT ID
-const FROM_NFT_ID = 101; 
+const FROM_NFT_ID = 1; 
 // 结束的 NFT ID
-const END_NFT_ID = 301; 
+const END_NFT_ID = 20; 
 
-const USDT = '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
-const NFT_ADDRESS = '0x966ae2552B359fC73743442F6Ac7BD0253F303ff'
-const NFT_SELL_PRICE =  eth('1');
+const decimals = 6;
+// 价格 
+const NFT_SELL_PRICE =  parseUnits('2998', decimals); //eth('2998');
+
+const USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+//'0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
+const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
 
 // 版税接收者
-const FEE_Recipient = '0x158F323C98547A0E5998eDB5A5BC9F182158159B'
+const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A'
+// '0x158F323C98547A0E5998eDB5A5BC9F182158159B'
 const FEE_Rate = 300
 
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
     const [ _admin, seller ] = await hre.ethers.getSigners();
+    console.log('_admin:', _admin.address)
+    console.log('seller:', seller.address)
+
     const { exchange, matchingPolicies, executionDelegate, testNFT } = await getSetupExchange(hre);
     const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
 
@@ -86,7 +96,7 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
             side: Side.Sell,
             salt: Date.now(),
             listingTime: '1691316213',  //2023-08-06 18:03:33
-            expirationTime: '1699697013', //2023-11-11 18:03:33
+            expirationTime: '1735660800', //2025-1-1 00:00:00
             extraParams: '0x',
             fees: [
                 {
@@ -105,12 +115,12 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
     _orders?.map(i => {
         let price: BigNumber = i?.order?.price;
-        i.order.numberPrice = formatEther(price.toString())
+        i.order.numberPrice = formatUnits(price, decimals)
     })
 
     const list_order = { sale_nft_new: _orders }
-
-    // 批量上架
+    console.log('list_order:', JSON.stringify(list_order, null, 2));
+    // // 批量上架
     await listing(_token, list_order);  
 });
 

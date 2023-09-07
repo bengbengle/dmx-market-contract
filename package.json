@@ -30,6 +30,7 @@
     "verify:mainnet": "hardhat verify --network mainnet",
     "upgrade:mainnet": "yarn compile && hardhat upgrade --network mainnet",
     "task:mainnet": "hardhat --network mainnet",
+    "batchlisting:mainnet": "hardhat batchlisting --network mainnet",
     "setfee:mainnet": "hardhat setFeeRate --network mainnet",
 
     "setFeeRecipient:mainnet": "hardhat setFeeRecipient --network mainnet"
