@@ -12,7 +12,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TransactionResponse } from "@ethersproject/providers";
 import { formatEther } from "ethers/lib/utils";
 import { DMXExchange, MockERC20, StandardPolicyERC721, } from "../typechain-types";
-import { ExecutionStruct } from "../typechain-types/contracts/DMXExchange";
 
 const { ethers } = hre;
 
@@ -79,149 +78,93 @@ describe('MultiCoinTests', function () {
         // Verify 4. check allowance
         let _allowance = await (usdt as MockERC20).allowance(bob.address, executionDelegate.address);
         if (!_allowance) {
-            await (usdt as MockERC20).connect(bob).approve(executionDelegate.address, eth('1000000'));
+            await (usdt as MockERC20).connect(bob).approve(executionDelegate.address, eth('1000'));
         }
 
         // assert(_isApprovedForAll, '_allowance is false');
 
     });
 
+    // it('transferFromUSDT', async () => {
+    //     let price = 1000000000
 
-
-    // it('check the single order is valid, sell, buy', async () => {
-
-    //     tokenId = tokenId + 1;
-    //     await testNFT.mint(alice.address, tokenId);
-
-    //     const price = eth('100');
-
-    //     sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
-    //     buy = generateOrder(bob, { 
-    //         side: Side.Buy,
-    //         tokenId,
-    //         paymentToken: usdt.address,
-    //         price
-    //     });
-
-    //     sellInput = await sell.pack({ signer: alice });
-    //     buyInput = await buy.pack();
-
-    //     // console.log('sellInput:', JSON.stringify(sellInput, null ,2 ));
-    //     // console.log('buyInput:', JSON.stringify(buyInput, null ,2 ));
-    //     let tx =  exchange.connect(bob).execute(sellInput, buyInput);
-    //     // console.log('tx:', tx);
-    //     const pendingTx: TransactionResponse = await tx;
-    //     const receipt = await pendingTx.wait();
-
-    //     assert(receipt.status == 1, 'receipt.status is false');
+    //     let admin_usdt = await usdt.balanceOf(admin.address)
+        
+    //     console.log('admin_usdt:', admin_usdt.toString());
+        
+    //     await usdt.connect(admin).transfer(alice.address, price);
+    //     await usdt.connect(admin).transfer(bob.address, price);
 
     //     let alice_usdt = await usdt.balanceOf(alice.address)
     //     let bob_usdt = await usdt.balanceOf(bob.address)
-    //     let admin_usdt = await usdt.balanceOf(admin.address)
 
-    //     assert(formatEther(alice_usdt.toString()) == '1097.0', 'alice_usdt is false');
-    //     assert(formatEther(bob_usdt.toString()) == '900.0', 'bob_usdt is false');
-    //     assert(formatEther(admin_usdt.toString()) == '3.0', 'admin_usdt is false');
+    //     console.log('alice_usdt:', alice_usdt.toString());
+    //     console.log('bob_usdt:', bob_usdt.toString());
 
+    //     await usdt.connect(bob).approve(executionDelegate.address, price);
+    //     let bob_approved = await usdt.allowance(bob.address, executionDelegate.address);
+    //     console.log('bob_approved:', bob_approved.toString());
+
+    //     let tx =  await exchange.connect(bob).testTransferTo(usdt.address, alice.address, bob.address, price);
+    //     await tx.wait();
+
+    //     alice_usdt = await usdt.balanceOf(alice.address)
+    //     bob_usdt = await usdt.balanceOf(bob.address)
+    //     console.log('alice_usdt:', alice_usdt.toString());
+    //     console.log('bob_usdt:', bob_usdt.toString());
     // });
 
-    it('check the bulk sell order is valid', async () => {
 
-        await testNFT.mint(alice.address, 1);
-        await testNFT.mint(alice.address, 2);
-        await testNFT.mint(alice.address, 3);
-        await testNFT.mint(alice.address, 4);
-        await testNFT.mint(alice.address, 5);
+    it('check the single order is valid, sell, buy', async () => {
 
-        // sellInput = await sell.pack({ signer: alice });
+        tokenId = tokenId + 1;
+        await testNFT.mint(alice.address, tokenId);
 
-        let maker = new Trader(admin, exchange);
-        for (let i = 1; i <= 5; i++) {
+        let price = 1000000000
 
-            let tokenId = i.toString()
+        let admin_usdt = await usdt.balanceOf(admin.address)
+        
+        await usdt.connect(admin).transfer(alice.address, price);
+        await usdt.connect(admin).transfer(bob.address, price);
+        let alice_usdt = await usdt.balanceOf(alice.address)
+        let bob_usdt = await usdt.balanceOf(bob.address)
 
-            maker.addOrder({
-                tokenId: tokenId,
-                matchingPolicy: standardPolicyERC721.address, // '0x7A6E1b14DcE51275300C3e5617F6891c78bFCEfb', 
-                collection: testNFT.address, // '0x651b9D1F1a2da81abB55515aFF90bb9d5dbd57d3', 
-                amount: 0,
-                side: Side.Sell,
-                salt: Date.now(),
-                listingTime: '1691316213',  //2023-08-06 18:03:33
-                expirationTime: '1699697013', //2023-11-11 18:03:33
-                price: eth('1'),
-                paymentToken: usdt.address, // '0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A', 
-                extraParams: '0x'
-            })
-        }
+        console.log('alice_usdt:', alice_usdt.toString());
+        console.log('bob_usdt:', bob_usdt.toString());
+        console.log('admin_usdt:', admin_usdt.toString());
 
-        const nonce = await exchange.nonces(admin.address)
+        await usdt.connect(bob).approve(executionDelegate.address, price);
+        let bob_approved = await usdt.allowance(bob.address, executionDelegate.address);
+        console.log('bob_approved:', bob_approved.toString());
 
-        const blocknumber = (await hre.ethers.provider.getBlock('latest')).number;
+        // alice_usdt = await usdt.balanceOf(alice.address)
+        // bob_usdt = await usdt.balanceOf(bob.address)
+        // console.log('alice_usdt:', alice_usdt.toString());
+        // console.log('bob_usdt:', bob_usdt.toString());
 
-        let listed = await maker.bulkSigs(blocknumber as number, nonce)
+        sell = generateOrder(alice, { side: Side.Sell, tokenId, paymentToken: usdt.address, price });
+        
+        buy = generateOrder(bob, {side: Side.Buy, tokenId, paymentToken: usdt.address, price });
 
-        let taker = new Trader(alice, exchange);
+        sellInput = await sell.pack({ signer: alice });
+        buyInput = await buy.pack();
 
-        await taker.addOrder(
-            {
-                ...listed[0].order,
-                Side: Side.Buy,
-                trader: bob.address,
-                tokenId: '1',
-                amount: 0,
-                price: eth('1'),
-                paymentToken: usdt.address,
-                extraParams: '0x'
-            }
-        );
+        let tx =  exchange.connect(bob).execute(sellInput, buyInput);
 
-        let buyer_orders = await taker.bulkNoSigs(blocknumber);
+        const pendingTx: TransactionResponse = await tx;
+        const receipt = await pendingTx.wait();
 
-        let order = listed[0];
+        assert(receipt.status == 1, 'receipt.status is false');
 
-        let buyo = buyer_orders[0];
+        alice_usdt = await usdt.balanceOf(alice.address)
+        bob_usdt = await usdt.balanceOf(bob.address)
 
-        let executions = [
-            {
-                sell: {
-                    order: order.order,
-                    r: order.r,
-                    v: order.v,
-                    s: order.s,
-                    extraSignature: order.extraSignature,
-                    signatureVersion: order.signatureVersion,
-                    blockNumber: order.blockNumber,
-                },
-                buy: {
-                    order: buyo.order,
-                    r: buyo.r,
-                    v: buyo.v,
-                    s: buyo.s,
-                    extraSignature: buyo.extraSignature,
-                    signatureVersion: buyo.signatureVersion,
-                    blockNumber: buyo.blockNumber,
-                }
-            }];
+        console.log('alice_usdt:', alice_usdt.toString());
+        console.log('bob_usdt:', bob_usdt.toString());
 
-        try {
-            console.log('alice:', alice.address)
-            let tx = await exchange.connect(alice).bulkExecute(executions, {
-                from: alice.address,
-                gasLimit: 10000000,
-                gasPrice: 100000000000,
-            });
-            console.log('tx:', tx);
-
-        } catch (e) {
-            console.log('e:', e);
-        }
-
-        // console.log('tx: tx', tx);
-
-        // const receipt = await tx.wait();
-
-
+        let ownerOf = await testNFT.connect(bob).ownerOf(tokenId)
+        console.log('bob address:', bob.address);
+        console.log('nft owner address:', ownerOf)
     });
 
 });

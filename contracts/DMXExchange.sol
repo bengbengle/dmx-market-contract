@@ -87,6 +87,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     // uint256 public blockRange;
     address public pool;
     address public weth;
+    address public usdt;
 
     uint256 public feeRate;
     address public feeRecipient;
@@ -114,6 +115,8 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     event NewPolicyManager(IPolicyManager policyManager);
     
     event NewWETH(address weth);
+    event NewUSDT(address usdt);
+
     event NewFeeRate(uint256 feeRate);
     event NewFeeRecipient(address feeRecipient);
 
@@ -175,6 +178,16 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
             }
         }
 
+        _returnDust();
+    }
+
+    function testTransferTo(address paymentToken, address seller, address buyer, uint256 value)
+        external
+        payable
+        whenOpen
+        setupExecution
+    {
+        _transferTo(paymentToken, buyer, seller, value);
         _returnDust();
     }
 
@@ -269,6 +282,15 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         weth = _weth;
         emit NewWETH(weth);
     }
+
+    // set weth address
+    function setUSDTAddress(address _usdt) external onlyOwner
+    {
+        require(_usdt != address(0), "Address cannot be zero");
+        usdt = _usdt;
+        emit NewUSDT(_usdt);
+    }
+
 
     function setFeeRate(uint256 _feeRate) external onlyOwner
     {
@@ -488,18 +510,17 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
     ) internal {
       
         if (paymentToken == address(0)) {
-
             require(msg.sender == buyer, "Cannot use ETH");  
             require(remainingETH >= price, "Insufficient value");
-
             remainingETH -= price;
         }
 
-        /* Take fee. */
+        // /* Take fee. */
         uint256 totalFeesPaid = _transferFees(fees, paymentToken, buyer, price);
 
         /* Transfer remainder to seller. */
         _transferTo(paymentToken, buyer, seller, price - totalFeesPaid);
+        // _transferTo(paymentToken, buyer, seller, price);
     
     }
 
@@ -552,12 +573,12 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         if (amount == 0) {
             return;
         }
-
         if (paymentToken == address(0)) {
             payable(to).transfer(amount);
-        
         } else if (paymentToken == weth) {
             executionDelegate.transferERC20(weth, from, to, amount);
+        } else if(paymentToken == usdt) {
+            executionDelegate.transferUSDT(paymentToken, from, to, amount);
         } else {
             executionDelegate.transferERC20(paymentToken, from, to, amount);
         }

@@ -14,5 +14,7 @@ interface IExecutionDelegate {
     function transferERC1155(address collection, address from, address to, uint256 tokenId, uint256 amount) external;
 
     function transferERC20(address token, address from, address to, uint256 amount) external returns (bool);
+
+    function transferUSDT(address token, address from, address to, uint256 amount) external;
 }
 

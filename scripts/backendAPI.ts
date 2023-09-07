@@ -1,7 +1,7 @@
 var realFetch = require('node-fetch');
 
-// const BACKEND_API = 'https://web.52dao.co/'
-const BACKEND_API = 'https://www.daomax.io/'
+const BACKEND_API = 'https://web.52dao.co/'
+// const BACKEND_API = 'https://www.daomax.io/'
 
 export async function get_nonce(user_address: string) {
     let url = BACKEND_API + 'v2/profile/get-nonce?user_address=' + user_address
