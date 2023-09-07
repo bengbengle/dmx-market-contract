@@ -5,7 +5,7 @@ import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
 
 import { BigNumber, ethers } from 'ethers';
 import { DMXExchange } from '../typechain-types';
-import { formatEther, formatUnits, parseEther, parseUnits } from 'ethers/lib/utils';
+import { formatEther, formatUnits, parseUnits } from 'ethers/lib/utils';
 
 import { login, listing, get_nonce as get_login_nonce } from './backendAPI'
 
@@ -36,17 +36,36 @@ const FROM_NFT_ID = 1;
 // 结束的 NFT ID
 const END_NFT_ID = 20; 
 
-const decimals = 6;
+//const decimals = 6;
 // 价格 
-const NFT_SELL_PRICE =  parseUnits('2998', decimals); //eth('2998');
+//const NFT_SELL_PRICE =  parseUnits('2998', decimals); //eth('2998');
 
-const USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+//const USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 //'0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
-const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
+//const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
 
 // 版税接收者
-const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A'
+// const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A'
 // '0x158F323C98547A0E5998eDB5A5BC9F182158159B'
+//const FROM_NFT_ID = 200; 
+// 结束的 NFT ID
+//const END_NFT_ID = 210; 
+
+// testnet: 0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A
+// const USDT = '0xB8166598db31AB3e622de37C83cd13f68D900f95'
+const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7' // matnet  
+
+// const NFT_ADDRESS = '0x966ae2552B359fC73743442F6Ac7BD0253F303ff' 
+// mannet 
+const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
+
+const decimals = 6
+const NFT_SELL_PRICE =  parseUnits('100', decimals);
+
+// 版税接收者
+// const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A' // matnet
+const FEE_Recipient = '0x158F323C98547A0E5998eDB5A5BC9F182158159B' // testnet
+
 const FEE_Rate = 300
 
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
@@ -62,22 +81,13 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
     const _login_sig = await seller.signMessage(_login_nonce);
     const _token = await login(seller.address, _login_sig);
 
-    //  // Verify 1. 授权 market 合约 可以调用委托种的 转移代币方法
-    //  let isApprovedContract = await executionDelegate.contracts(exchange.address);
-    //  if(!isApprovedContract) {
-    //     let tx = await executionDelegate.approveContract(exchange.address)
-    //     await tx.wait();
-
-    //     isApprovedContract = await executionDelegate.contracts(exchange.address);
-    //  }
-    //  console.log('isApprovedContract:', isApprovedContract)
- 
      // Verify 2. 如果没有授权，需要授权
      let _isApprovedForAll = await testNFT.connect(seller).isApprovedForAll(seller.address, executionDelegate.address);
      if(!_isApprovedForAll) {
         let tx = await testNFT.connect(seller).setApprovalForAll(executionDelegate.address, true);
         await tx.wait();
     }
+    
     console.log('_isApprovedForAll:', _isApprovedForAll)
 
 
@@ -101,7 +111,7 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
             fees: [
                 {
                     rate: FEE_Rate,
-                    recipient: FEE_Recipient,
+                    recipient: FEE_Recipient
                 }
             ]
         })

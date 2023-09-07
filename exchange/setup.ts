@@ -4,7 +4,7 @@ import { BigNumber, Contract, ethers, Signer, Wallet } from 'ethers';
 import hre from 'hardhat';
 
 import { eth, Order, Side } from './utils';
-import { ExecutionDelegate, MockERC20, MockERC721 } from '../typechain-types';
+import { ExecutionDelegate, MockERC20, MockERC721, TetherToken } from '../typechain-types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FactoryOptions, HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -42,7 +42,7 @@ interface SetupTestResult {
   matchingPolicies: Record<string, Contract>;
 
   testNFT: MockERC721;
-  usdt: MockERC20;
+  usdt: TetherToken;
   usdc: MockERC20;
   weth: Contract;
 
@@ -62,15 +62,22 @@ async function _mockTokens(alice: SignerWithAddress, bob: SignerWithAddress) {
   await weth.mint(bob.address, eth('1000'));
   await weth.mint(alice.address, eth('1000'));
 
-  const usdt = (await simpleDeploy('MockERC20', ["USDT", "USDT"])) as MockERC20;
-  await usdt.mint(bob.address, eth('1000'));
-  await usdt.mint(alice.address, eth('1000'));
+  
+  // const usdt = (await simpleDeploy('MockERC20', ["WETH", "WETH"])) as MockERC20;
+  // await usdt.mint(bob.address, eth('1000'));
+  // await usdt.mint(alice.address, eth('1000'));
+
+
+  const usdt = (await simpleDeploy('TetherToken', [1000000000, "USDT", "USDT", 6])) as TetherToken;
+  await usdt.issue(1000000000);
+  await usdt.issue(1000000000);
 
   const usdc = (await simpleDeploy('MockERC20', ["USDC", "USDC"])) as MockERC20;
   await usdc.mint(bob.address, eth('1000'));
   await usdc.mint(alice.address, eth('1000'));
 
   return { weth, usdc, usdt};
+  
 }
 
 async function _mockNFT(alice: SignerWithAddress, bob: SignerWithAddress) {
@@ -88,6 +95,10 @@ async function _approveERC20(coin: MockERC20, account: SignerWithAddress, execut
   await coin.connect(account).approve(executionDelegate.address, eth('10000000000000'));
 }
 
+async function _approveUSDT(coin: TetherToken, account: SignerWithAddress, executionDelegate: ExecutionDelegate) {
+  await coin.connect(account).approve(executionDelegate.address, eth('10000000000000'));
+}
+
 export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTestResult> {
 
   const { exchange, executionDelegate, matchingPolicies } = contracts;
@@ -96,6 +107,9 @@ export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTe
   const { weth, usdt, usdc } = await _mockTokens(alice, bob);
   const { testNFT } = await _mockNFT(alice, bob);
 
+  await exchange.setWethAddress(weth.address);
+  await exchange.setUSDTAddress(usdt.address);
+  
   await _registryWETH(weth, exchange);
 
   // await _approveNFT(testNFT, alice, executionDelegate);
@@ -104,8 +118,8 @@ export async function setupTest(contracts: SetupExchangeResult): Promise<SetupTe
   await _approveERC20(weth, alice, executionDelegate);
   await _approveERC20(weth, bob, executionDelegate);
 
-  await _approveERC20(usdt, alice, executionDelegate);
-  await _approveERC20(usdt, bob, executionDelegate);
+  // await _approveERC20(usdt, alice, executionDelegate);
+  // await _approveERC20(usdt, bob, executionDelegate);
 
   await _approveERC20(usdc, alice, executionDelegate);
   await _approveERC20(usdc, bob, executionDelegate);

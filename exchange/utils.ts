@@ -203,7 +203,7 @@ export class Trader {
 
     async addOrder(overrides = {}, _extraSignature: string = '0x') {
 
-      const DEFAULT_ORDER: OrderWithNonce = {
+       const DEFAULT_ORDER: OrderWithNonce = {
             trader: this.user.address,
             side: Side.Sell,
             matchingPolicy: '0x',
@@ -260,8 +260,12 @@ export class Trader {
     }
 
     async bulkNoSigs(blockNumber: number) {
+
         let out = []
         for (let i = 0; i < this.orders.length; i++) {
+            
+            console.log('this.orders[i]:', this.orders[i])
+
             let sig = {
                 order: this.orders[i],
                 v: 27,

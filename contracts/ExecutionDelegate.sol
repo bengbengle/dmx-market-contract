@@ -2,18 +2,37 @@
 pragma solidity ^0.8.13;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {IExecutionDelegate} from "./interfaces/IExecutionDelegate.sol";
+interface IExecutionDelegate {
+    function approveContract(address _contract) external;
+    function denyContract(address _contract) external;
+    function revokeApproval() external;
+    function grantApproval() external;
+
+    function transferERC721Unsafe(address collection, address from, address to, uint256 tokenId) external;
+
+    function transferERC721(address collection, address from, address to, uint256 tokenId) external;
+
+    function transferERC1155(address collection, address from, address to, uint256 tokenId, uint256 amount) external;
+
+    function transferERC20(address token, address from, address to, uint256 amount) external returns (bool);
+
+    function transferUSDT(address token, address from, address to, uint256 amount) external;
+}
+
 
 /**
  * @title ExecutionDelegate
  * @dev Proxy contract to manage user token approvals
  */
 contract ExecutionDelegate is IExecutionDelegate, Ownable {
+
+    using SafeERC20 for IERC20;
 
     mapping(address => bool) public contracts;
     mapping(address => bool) public revokedApproval;
@@ -123,5 +142,15 @@ contract ExecutionDelegate is IExecutionDelegate, Ownable {
     {
         require(revokedApproval[from] == false, "User has revoked approval");
         return IERC20(token).transferFrom(from, to, amount);
+    }
+
+    function transferUSDT(address token, address from, address to, uint256 amount) 
+        approvedContract
+        external
+    {
+        require(revokedApproval[from] == false, "User has revoked approval");
+
+        IERC20(token).safeTransferFrom(from, to, amount);
+
     }
 }

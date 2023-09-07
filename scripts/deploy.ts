@@ -3,7 +3,7 @@ import { Contract } from 'ethers';
 import { getAddress, getContract, updateAddresses } from './web3-utils';
 import { deploy, getNetwork } from './web3-utils';
 import { SetupExchangeResult } from '../exchange';
-import { ExecutionDelegate, PolicyManager, StandardPolicyERC721 } from '../typechain-types';
+import { ExecutionDelegate, PolicyManager, StandardPolicyERC721, MockERC20 } from '../typechain-types';
 import { assert } from 'console';
 
 // import 'isomorphic-fetch';
@@ -75,6 +75,43 @@ task('upgrade', 'Upgrade').setAction(async (_, hre) => {
 
   console.log('functions::', proxy.functions);
 
+});
+
+task('deploydelegation', 'deploydelegation').setAction(async (_, hre) => {
+  const executionDelegate = await deploy(hre, 'ExecutionDelegate') as ExecutionDelegate;
+});
+task('verifydelegation', 'verifydelegation').setAction(async (_, hre) => {
+  const [admin] = await hre.ethers.getSigners();
+  // const { network} = getNetwork(hre);
+  const { run } = hre
+
+  const { network } = getNetwork(hre);
+  const _delegate = getAddress('ExecutionDelegate', network);
+
+  await run(`verify:verify`, { address: _delegate, constructorArguments: [] });
+  // const executionDelegate = await deploy(hre, 'ExecutionDelegate') as ExecutionDelegate;
+});
+
+task('setdelegation', 'setdelegation').setAction(async (_, hre) => {
+
+  const { network } = getNetwork(hre);
+
+  // 交易所 logic 合约
+  const exchangeImpl = await getContract(hre, 'DMXExchange');
+
+  console.log('exchangeImpl:', exchangeImpl.address);
+
+  const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+
+  const exchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
+  
+  const _delegate = getAddress('ExecutionDelegate', network);
+
+  const tx = await exchange.setExecutionDelegate(_delegate);
+
+  await tx.wait()
+
+  console.log('_delegate ....')
 });
 
 task('verify', 'verify').setAction(async (_, hre) => {

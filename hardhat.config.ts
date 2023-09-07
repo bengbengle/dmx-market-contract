@@ -92,6 +92,18 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: '0.4.17',
+        settings: {
+          metadata: {
+            bytecodeHash: 'none',
+          },
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
     ],
   },
   gasReporter: {

@@ -6,14 +6,24 @@
   "scripts": {
     "setup": "cp .env.example .env",
     "coverage": "hardhat coverage",
-    "test": "hardhat test",
+    "test": "hardhat typechain && yarn build && hardhat test",
     "compile": "hardhat compile",
     "build": "hardhat compile",
+    "clean": "hardhat clean && rm -rf abi/ && rm -rf artifacts/ && rm -rf dist/ && rm -rf typechain/",
+    "typechain": "hardhat typechain",
     "deploy": "yarn compile && hardhat deploy",
     "run_upgrade": "hardhat upgrade",
 
+    "deployUSDT:goerli": "hardhat deployUSDT --network goerli",
+    "verifyUSDT:goerli": "hardhat verifyUSDT --network goerli",
+
     "deploy:goerli": "hardhat deploy --network goerli",
     "verify:goerli": "hardhat verify --network goerli",
+    "deploydelegation:goerli": "yarn compile && hardhat deploydelegation --network goerli",
+    "verifydelegation:goerli": "yarn compile && hardhat verifydelegation --network goerli",
+    "setdelegation:goerli": "yarn compile && hardhat setdelegation --network goerli",
+    
+    "deployimp:goerli": "yarn compile && hardhat deployimp --network goerli",
     "upgrade:goerli": "yarn compile && hardhat upgrade --network goerli",
     "task:goerli": "hardhat --network goerli",
     "setfee:goerli": "hardhat set-fee --network goerli",

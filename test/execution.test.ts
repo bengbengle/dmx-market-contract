@@ -119,48 +119,48 @@
 //         // buyInput = await buy.pack({ signer: bob });
 //     });
 
-//     //   it('check the single order is valid', async () => {
-//     //     const tx = await waitForTx(
-//     //       exchange.connect(bob).execute(sellInput, buyInput)
-//     //     );
-//     //   });
+//       it('check the single order is valid', async () => {
+//         const tx = await waitForTx(
+//           exchange.connect(bob).execute(sellInput, buyInput)
+//         );
+//       });
 
-//     //   it('can cancel bulk listing', async () => {
+//       it('can cancel bulk listing', async () => {
 
-//     //     otherOrders = [
-//     //         generateOrder(alice, { salt: 1, Side: Side.Sell, tokenId: 1 }),
-//     //         generateOrder(alice, { salt: 2, Side: Side.Sell, tokenId: 2 }),
-//     //         generateOrder(alice, { salt: 3, Side: Side.Sell, tokenId: 3 }),
-//     //     ];
+//         otherOrders = [
+//             generateOrder(alice, { salt: 1, Side: Side.Sell, tokenId: 1 }),
+//             generateOrder(alice, { salt: 2, Side: Side.Sell, tokenId: 2 }),
+//             generateOrder(alice, { salt: 3, Side: Side.Sell, tokenId: 3 }),
+//         ];
 
-//     //     console.log('sellInput:', sellInput);
-//     //     console.log('buyInput:', buyInput);
+//         console.log('sellInput:', sellInput);
+//         console.log('buyInput:', buyInput);
 
-//     //     const _blockNumber = (await ethers.provider.getBlock('latest')).number;
-//     //     const seller_orders = await sell.bulkSigs(otherOrders, _blockNumber);
+//         const _blockNumber = (await ethers.provider.getBlock('latest')).number;
+//         const seller_orders = await sell.bulkSigs(otherOrders, _blockNumber);
 
-//     //     let buy = generateOrder(admin, { tokenId: 1, side: Side.Buy});
+//         let buy = generateOrder(admin, { tokenId: 1, side: Side.Buy});
 
-//     //     // let buy = generateOrder(bob, { tokenId: 1, side: Side.Buy});
+//         // let buy = generateOrder(bob, { tokenId: 1, side: Side.Buy});
 
-//     //     let buyer_orders = await buy.bulkNoSigs(otherOrders, seller_orders, _blockNumber);
+//         let buyer_orders = await buy.bulkNoSigs(otherOrders, seller_orders, _blockNumber);
 
 
-//     //     const _execution1 = { sell: seller_orders[0], buy: buyer_orders[0] }
-//     //     // const _execution2 = { sell: seller_orders[1], buy: buyer_orders[1] }
+//         const _execution1 = { sell: seller_orders[0], buy: buyer_orders[0] }
+//         // const _execution2 = { sell: seller_orders[1], buy: buyer_orders[1] }
 
-//     //     console.log('otherOrders:', JSON.stringify(_execution1, null, 4))
+//         console.log('otherOrders:', JSON.stringify(_execution1, null, 4))
 
-//     //     await exchange.connect(bob).bulkExecute([_execution1], { value: price.mul(3), gasLimit: 3738000 });
+//         await exchange.connect(bob).bulkExecute([_execution1], { value: price.mul(3), gasLimit: 3738000 });
 
-//     //     // .bu([buy.parameters, ...otherOrders.map(_ => _.parameters)]);
+//         // .bu([buy.parameters, ...otherOrders.map(_ => _.parameters)]);
 
-//     //     // let alice_amount = await testNFT.balanceOf(alice.address);
-//     //     // let bob_amount = await testNFT.balanceOf(bob.address);
-//     //     // await exchange.connect(bob).execute(sellInput, buyInput);
-//     //     // let alice_amount_after = await testNFT.balanceOf(alice.address);
-//     //     // let bob_amount_after = await testNFT.balanceOf(bob.address);
-//     //   });
+//         // let alice_amount = await testNFT.balanceOf(alice.address);
+//         // let bob_amount = await testNFT.balanceOf(bob.address);
+//         // await exchange.connect(bob).execute(sellInput, buyInput);
+//         // let alice_amount_after = await testNFT.balanceOf(alice.address);
+//         // let bob_amount_after = await testNFT.balanceOf(bob.address);
+//       });
 
 //     //   it('can cancel multiple orders', async () => {
 //     //     const buy2 = generateOrder(bob, { side: Side.Buy, tokenId });

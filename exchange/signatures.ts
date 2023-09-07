@@ -214,6 +214,7 @@ export function hashWithDomain(parameters: any, exchange: Contract): string {
 }
 
 export function hashWithoutDomain(parameters: any): string {
+  
   parameters.nonce = parameters.nonce.toHexString();
   parameters.price = parameters.price.toHexString();
 

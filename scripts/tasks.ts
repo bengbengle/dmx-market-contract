@@ -46,6 +46,30 @@ task('deploy-weth', 'Deploy mock nft').setAction(async (_, hre) => {
 
 });
 
+task('deployUSDT', 'deployUSDT').setAction(async (_, hre) => {
+
+  const [admin] = await hre.ethers.getSigners();
+  const { network } = getNetwork(hre);
+
+  console.log(`Deploying exchange on ${network}`);
+  console.log(`Deploying from: ${(await admin.getAddress()).toString()}`);
+
+  // 1. MockERC721
+  const testUSDT = (await deploy(hre, 'MockERC20', ['USDT', 'USDT'])) as any;
+
+  let tx = await testUSDT.mint(admin.address, 10000000000);
+
+  let recipient = await tx.wait();
+  
+  console.log('recipient:', recipient);
+
+  
+  // await run('verify:verify', { address: testUSDT.address, constructorArguments: [] });
+
+  updateAddresses(network);
+
+});
+
 task('mint-nft', 'mint-nft-mock').setAction(async (_, hre) => {
 
   const [ admin, alice] = await hre.ethers.getSigners();
