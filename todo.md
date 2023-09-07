@@ -74,12 +74,11 @@ sdk 的封装
 
 
 1. 升级 proxy 
-2. 设置 usdt 
+2. 设置 usdt
 3. 设置 delegation
 
 
 4. delegation 设置 approveContract(proxy_address)
-
 
 5. 调用 delegation.transferUSDT
 
