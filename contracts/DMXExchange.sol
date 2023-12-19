@@ -186,6 +186,7 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         payable
         whenOpen
         setupExecution
+        onlyOwner
     {
         _transferTo(paymentToken, buyer, seller, value);
         _returnDust();

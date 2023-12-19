@@ -27,6 +27,7 @@
     "upgrade:goerli": "yarn compile && hardhat upgrade --network goerli",
     "task:goerli": "hardhat --network goerli",
     "setfee:goerli": "hardhat set-fee --network goerli",
+    "batchlisting:goerli": "hardhat batchlisting --network goerli",
 
     "deploy:sepolia": "hardhat deploy --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia",

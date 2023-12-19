@@ -26,12 +26,6 @@ const chainIds = {
   'linea-goerli': 59140,
 };
 
-const CHAIN_ID: string = process.env.CHAIN_ID || "";
-
-if (!CHAIN_ID) {
-  throw new Error('Please set your CHAIN_ID in a .env file');
-}
-
 // Ensure that we have all the environment variables we need.
 const PRIVATE_KEYS: string = process.env.PRIVATE_KEYS || "";
 
@@ -70,7 +64,7 @@ const config: HardhatUserConfig = {
       chainId: 1,
     },
     hardhat: {
-      chainId: parseInt(CHAIN_ID),
+      chainId: 5,
       accounts: {
         count: 10,
         mnemonic: process.env.MNEMONIC,

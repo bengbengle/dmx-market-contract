@@ -70,10 +70,11 @@ task('upgrade', 'Upgrade').setAction(async (_, hre) => {
   const _proxyAddr = await getAddress('DMXExchangeProxy', network);
   const _impl = await deploy(hre, DMXExchange_ContractName, [], { libraries: { MerkleVerifier: merkleVerifierAddress } }, 'DMXExchange');
 
-  const proxy = new hre.ethers.Contract(_proxyAddr, _impl.interface, _impl.signer);
-  await proxy.upgradeTo(_impl.address, { gasLimit: 3738000 });
+  // console.log('_Impl:', _impl.address)
+  // const proxy = new hre.ethers.Contract(_proxyAddr, _impl.interface, _impl.signer);
+  // await proxy.upgradeTo(_impl.address, { gasLimit: 3738000 });
 
-  console.log('functions::', proxy.functions);
+  // console.log('functions::', proxy.functions);
 
 });
 

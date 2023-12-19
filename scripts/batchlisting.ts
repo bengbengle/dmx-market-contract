@@ -1,84 +1,80 @@
 import { task } from 'hardhat/config';
 import { getAddress, getContract, getNetwork } from './web3-utils';
 
-import { Trader, eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
+import { Trader, Side} from '../exchange/utils';
 
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber } from 'ethers';
 import { DMXExchange } from '../typechain-types';
-import { formatEther, formatUnits, parseUnits } from 'ethers/lib/utils';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
 
-import { login, listing, get_nonce as get_login_nonce } from './backendAPI'
+import { login, listing, get_nonce as get_login_nonce, status } from './backendAPI'
+import assert from 'assert';
 
 const getSetupExchange = async (hre: any) => {
     const { network } = getNetwork(hre);
+
     console.log('network:', network);
+
+    // 交易所 logic 合约
+    // const exchangeImpl = await getContract(hre, 'DMXExchange');
+    const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+    
 
     const merkleVerifierAddress = await getAddress('MerkleVerifier', network);
 
     // 交易所 logic 合约
-    const exchangeImpl = await getContract(hre, 'DMXExchange');
-    console.log('sss:', exchangeImpl.address)
-    const DMXExchangeProxy = await getAddress('DMXExchangeProxy', network);
+    const exchangeImpl = await getContract(hre, 'DMXExchange', { libraries: { MerkleVerifier: merkleVerifierAddress } });
+
     const exchange: DMXExchange = new hre.ethers.Contract(DMXExchangeProxy, exchangeImpl.interface, exchangeImpl.signer);
     const executionDelegate = await getContract(hre, 'ExecutionDelegate');
     const standardPolicyERC721 = await getContract(hre, 'StandardPolicyERC721');
-    console.log('721sss', standardPolicyERC721.address)
-    const testNFT = await getContract(hre, 'MockERC721');
-    console.log(testNFT.address)
-    // const mockERC20 = await getContract(hre, 'MockERC20');
+    const testNFT = await getContract(hre, 'MockERC721'); // 测试 NFT
     return { exchange, executionDelegate, matchingPolicies: { standardPolicyERC721 }, testNFT };
-    
+}
+
+const NETWORK: any = 'testnet';
+
+// testnet
+let confg = {
+    USDT_ADDRESS: '0x629afCC089732Ff5f01dDa6C6B41dAC2488B7E22',
+    NFT_ADDRESS: '0x966ae2552B359fC73743442F6Ac7BD0253F303ff',
+    DECIMALS: 6,
+    NFT_SELL_PRICE: parseUnits('166', 6),
+    FEE_RECIPIENT: '0x158F323C98547A0E5998eDB5A5BC9F182158159B',
+    FEE_RATE: 300,
+    FROM_NFT_ID: 500,
+    END_NFT_ID: 600,
+}
+
+if(NETWORK == 'mainnet') {
+    confg.NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
+    confg.USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7'
+    confg.FEE_RECIPIENT = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A' // 版税接收者
+    confg.END_NFT_ID = 450
+    confg.FROM_NFT_ID = 400
+    confg.NFT_SELL_PRICE = parseUnits('100', 6)
+    confg.FEE_RATE = 300
 }
 
 
-// 开始的 NFT ID
-const FROM_NFT_ID = 1; 
-// 结束的 NFT ID
-const END_NFT_ID = 20; 
-
-//const decimals = 6;
-// 价格 
-//const NFT_SELL_PRICE =  parseUnits('2998', decimals); //eth('2998');
-
-//const USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
-//'0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A'
-//const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
-
-// 版税接收者
-// const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A'
-// '0x158F323C98547A0E5998eDB5A5BC9F182158159B'
-//const FROM_NFT_ID = 200; 
-// 结束的 NFT ID
-//const END_NFT_ID = 210; 
-
-// testnet: 0x4Cc8Cd735BB841A3bDdda871b6668cc0d0Cbc14A
-// const USDT = '0xB8166598db31AB3e622de37C83cd13f68D900f95'
-const USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7' // matnet  
-
-// const NFT_ADDRESS = '0x966ae2552B359fC73743442F6Ac7BD0253F303ff' 
-// mannet 
-const NFT_ADDRESS = '0xc7aA778906e8DEAf9C0F7ADa99f73bDB81242044'
-
-const decimals = 6
-const NFT_SELL_PRICE =  parseUnits('100', decimals);
-
-// 版税接收者
-// const FEE_Recipient = '0x8DC6315758468A222072DFFc68DFB8b0dF8D839A' // matnet
-const FEE_Recipient = '0x158F323C98547A0E5998eDB5A5BC9F182158159B' // testnet
-
-const FEE_Rate = 300
-
 task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
-    const [ _admin, seller ] = await hre.ethers.getSigners();
+    let seller, _admin = null; 
+
+    [ seller, _admin] = await hre.ethers.getSigners();
+    if(NETWORK == 'mainnet') {
+        [seller, _admin] = await hre.ethers.getSigners();
+    }
+    assert(seller != null, 'seller is null')
+
     console.log('_admin:', _admin.address)
     console.log('seller:', seller.address)
 
     const { exchange, matchingPolicies, executionDelegate, testNFT } = await getSetupExchange(hre);
     const matchingPolicy = matchingPolicies.standardPolicyERC721.address;
 
-    const _login_nonce: string = await get_login_nonce(seller.address);
-    const _login_sig = await seller.signMessage(_login_nonce);
+    const _nonce_to_sign: string = await get_login_nonce(seller.address);
+    const _login_sig = await seller.signMessage(_nonce_to_sign);
     const _token = await login(seller.address, _login_sig);
 
      // Verify 2. 如果没有授权，需要授权
@@ -88,19 +84,30 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
         await tx.wait();
     }
     
-    console.log('_isApprovedForAll:', _isApprovedForAll)
-
-
     const _trader = new Trader(seller, exchange);
-    for (let i = FROM_NFT_ID; i <= END_NFT_ID; i++) {
+    for (let i = confg.FROM_NFT_ID; i <= confg.END_NFT_ID; i++) {
 
         let tokenId = i.toString()
+        
+        let _owner = await testNFT.ownerOf(tokenId);
+        if(_owner != seller.address) { 
+            console.log('owner:', _owner, 'seller:', seller.address, 'tokenId:', tokenId, 'eq?:', _owner == seller.address)
+            continue;
+        }
+
+        let _status = await status(testNFT.address, tokenId);
+        console.log('nft status:', _status.data.status)
+        
+        if(_status.data.status != 2) {
+            console.log('nft status:', _status.data.status)
+            continue;
+        }
+
         _trader.addOrder({
             tokenId: tokenId,
-            collection: NFT_ADDRESS,
-            price: NFT_SELL_PRICE,
-            paymentToken: USDT,
-
+            collection: confg.NFT_ADDRESS,
+            price: confg.NFT_SELL_PRICE,
+            paymentToken: confg.USDT_ADDRESS,
             matchingPolicy: matchingPolicy,
             amount: 0,
             side: Side.Sell,
@@ -110,12 +117,11 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
             extraParams: '0x',
             fees: [
                 {
-                    rate: FEE_Rate,
-                    recipient: FEE_Recipient
+                    rate: confg.FEE_RATE,
+                    recipient: confg.FEE_RECIPIENT
                 }
             ]
         })
-
     }
 
     // 签名
@@ -125,12 +131,16 @@ task('batchlisting', 'batchlisting').setAction(async (_, hre) => {
 
     _orders?.map(i => {
         let price: BigNumber = i?.order?.price;
-        i.order.numberPrice = formatUnits(price, decimals)
+        i.order.numberPrice = formatUnits(price, confg.DECIMALS)
     })
 
     const list_order = { sale_nft_new: _orders }
-    console.log('list_order:', JSON.stringify(list_order, null, 2));
-    // // 批量上架
-    await listing(_token, list_order);  
+
+    console.log('...')
+    // 批量上架
+    let result = await listing(_token, list_order);    
+
+    console.log('nft status:', result.data)
+
 });
 

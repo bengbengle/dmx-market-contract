@@ -3,6 +3,7 @@ import { task } from 'hardhat/config';
 import { getNetwork, waitForTx, getAddress, getContract } from './web3-utils';
 
 import { eth, Order, Side, ZERO_ADDRESS } from '../exchange/utils';
+import { DMXExchange } from '../typechain-types';
 
 
 task("packbulk", "can sing packBulk sell order and execute").setAction(async (_, hre) => {
@@ -99,12 +100,8 @@ task("packbulk", "can sing packBulk sell order and execute").setAction(async (_,
     const _execution1 = { sell: seller_orders[0], buy: buyer_orders[0] }
     const _execution2 = { sell: seller_orders[1], buy: buyer_orders[1] }
 
-    await waitForTx(
-        await exchange
-            .connect(admin)
-            .bulkExecute([_execution1, _execution2], { value: price.mul(3), gasLimit: 3738000 })
-    )
-
+    let ss = await (exchange as DMXExchange).estimateGas.bulkExecute([_execution1, _execution2], { value: price.mul(3) })
+    await (exchange as DMXExchange).estimateGas.bulkExecute([_execution1, _execution2], { value: price.mul(3), gasLimit: ss })
   
     console.log('alice testNFT balance:', (await testNFT.balanceOf(alice.address)).toString());
     console.log('admin testNFT balance:', (await testNFT.balanceOf(admin.address)).toString());
