@@ -181,16 +181,16 @@ contract DMXExchange is IDMXExchange, ReentrancyGuarded, EIP712, OwnableUpgradea
         _returnDust();
     }
 
-    function testTransferTo(address paymentToken, address seller, address buyer, uint256 value)
-        external
-        payable
-        whenOpen
-        setupExecution
-        onlyOwner
-    {
-        _transferTo(paymentToken, buyer, seller, value);
-        _returnDust();
-    }
+    // function testTransferTo(address paymentToken, address seller, address buyer, uint256 value)
+    //     external
+    //     payable
+    //     whenOpen
+    //     setupExecution
+    //     onlyOwner
+    // {
+    //     _transferTo(paymentToken, buyer, seller, value);
+    //     _returnDust();
+    // }
 
     function partialFillExecute(Execution[] calldata executions)
         external
